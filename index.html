@@ -825,6 +825,8 @@
 <!-- SAVE INDICATOR -->
 <div class="save-indicator" id="save-indicator">✓ Sauvegardé</div>
 
+</div><!-- /page-planning -->
+
 <!-- PAGE 3 : GUIDE RESTOS & ACTIVITÉS -->
 <div class="page" id="page-guide">
 <div class="guide-header">
@@ -1835,12 +1837,15 @@
   // Indicateur sauvegarde
   function showSaved() {
     const el = document.getElementById('save-indicator');
+    if (!el) return;
     el.classList.add('show');
     setTimeout(() => el.classList.remove('show'), 1800);
   }
 
   // Fermer modal en cliquant dehors
-  document.getElementById('activity-modal').addEventListener('click', function(e) {
+  // Fermer modal en cliquant dehors
+  const modalEl = document.getElementById('activity-modal');
+  if (modalEl) modalEl.addEventListener('click', function(e) {
     if (e.target === this) closeModal();
   });
 
@@ -1986,7 +1991,6 @@
       <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Chill / Correct</span><span style="font-size:0.8rem;color:var(--muted);">OK / bien / tranquille</span></div>
       <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Breuvage</span><span style="font-size:0.8rem;color:var(--muted);">Boisson — "Qu'est-ce tu veux comme breuvage ?"</span></div>
     </div>
-    </div>
   </div>
 
 </main>
@@ -2005,7 +2009,6 @@
   <div class="map-legend-item"><div class="map-dot" style="background:#4a9eff"></div>Activités</div>
   <div class="map-legend-item"><div class="map-dot" style="background:#a855f7"></div>Bars & Rooftops</div>
   <div class="map-legend-item"><div class="map-dot" style="background:#4caf7d"></div>Marchés & Parcs</div>
-</div>
 </div>
 
 </body>
