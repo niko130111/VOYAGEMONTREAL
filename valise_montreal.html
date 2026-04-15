@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Montréal 2026 🍁</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  :root {
+    --bg:#0f0f0f;--card:#1a1a1a;--card2:#222;--accent:#e8462a;--accent2:#f5a623;
+    --green:#4caf7d;--blue:#4a9eff;--purple:#a855f7;--text:#f0ece4;--muted:#888;--border:#2e2e2e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+
+  .top-nav{position:fixed;top:0;left:0;right:0;z-index:200;background:#0a0a0a;border-bottom:1px solid var(--border);display:flex;}
+  .nav-btn{flex:1;padding:14px 8px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1.5px;color:var(--muted);background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;}
+  .nav-btn.active{color:var(--accent2);border-bottom-color:var(--accent2);}
+  .nav-btn:hover:not(.active){color:var(--text);}
+
+  .page{display:none;padding-top:48px;}
+  .page.active{display:block;}
+
+  /* PAGE 1 */
+  header{background:linear-gradient(135deg,#1a0800 0%,#0f0f0f 60%);border-bottom:1px solid var(--border);padding:20px 24px 16px;}
+  .header-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  h1{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:2px;line-height:1;}
+  h1 span{color:var(--accent);}
+  .trip-info{font-size:0.75rem;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+  .progress-wrap{margin-top:12px;}
+  .progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.4s;width:0%;}
+  .progress-text{font-size:0.7rem;color:var(--muted);margin-top:5px;display:flex;justify-content:space-between;}
+  .progress-text strong{color:var(--accent2);}
+  .reset-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.73rem;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+  .reset-btn:hover{border-color:var(--accent);color:var(--accent);}
+  main{padding:16px;max-width:600px;margin:0 auto;padding-bottom:40px;}
+  .section{margin-bottom:8px;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--card);cursor:pointer;user-select:none;gap:10px;}
+  .section-header:hover{background:var(--card2);}
+  .section-title{display:flex;align-items:center;gap:9px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1.5px;}
+  .section-count{font-family:'DM Sans',sans-serif;font-size:0.7rem;color:var(--muted);background:var(--bg);padding:2px 7px;border-radius:20px;border:1px solid var(--border);}
+  .section-count.done{color:var(--accent2);border-color:var(--accent2);}
+  .chevron{color:var(--muted);font-size:0.75rem;transition:transform 0.25s;}
+  .chevron.open{transform:rotate(180deg);}
+  .section-items{background:var(--bg);border-top:1px solid var(--border);display:none;}
+  .section-items.open{display:block;}
+  .item{display:flex;align-items:center;gap:11px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
+  .item:last-child{border-bottom:none;}
+  .item:hover{background:var(--card);}
+  .item.checked{opacity:0.42;}
+  .checkbox{width:19px;height:19px;border:2px solid var(--border);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+  .item.checked .checkbox{background:var(--accent);border-color:var(--accent);}
+  .checkmark{color:white;font-size:0.7rem;display:none;}
+  .item.checked .checkmark{display:block;}
+  .item-label{font-size:0.88rem;flex:1;}
+  .item.checked .item-label{text-decoration:line-through;color:var(--muted);}
+  .item-qty{font-size:0.75rem;color:var(--accent2);font-weight:600;background:rgba(245,166,35,0.1);padding:2px 7px;border-radius:10px;}
+  .avion-banner{background:linear-gradient(135deg,#1a0800,#1a1000);border:1px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:11px;}
+  .avion-banner .text{font-size:0.82rem;line-height:1.4;}
+  .avion-banner .text strong{color:var(--accent2);}
+  .weight-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:8px;display:flex;justify-content:space-around;text-align:center;}
+  .weight-val{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--accent2);line-height:1;}
+  .weight-val.green{color:var(--green);}
+  .weight-label{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+  .weight-divider{width:1px;background:var(--border);}
+
+  /* PAGE 2 */
+  .planning-header{background:linear-gradient(135deg,#001a10 0%,#0f0f0f 60%);border-bottom:1px solid var(--border);padding:20px 24px 16px;}
+  .planning-header h2{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:2px;}
+  .planning-header h2 span{color:var(--green);}
+  .planning-header .sub{font-size:0.73rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+  .planning-main{padding:16px;max-width:100%;padding-bottom:40px;}
+
+  .day-card{margin-bottom:10px;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .day-header{padding:14px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;background:var(--card);}
+  .day-header:hover{background:var(--card2);}
+  .day-date{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:1px;flex:1;}
+  .day-badge{font-size:0.68rem;font-weight:600;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;}
+  .badge-done{background:rgba(76,175,125,0.15);color:var(--green);border:1px solid var(--green);}
+  .badge-flexible{background:rgba(74,158,255,0.15);color:var(--blue);border:1px solid var(--blue);}
+  .badge-key{background:rgba(232,70,42,0.15);color:var(--accent);border:1px solid var(--accent);}
+  .badge-depart{background:rgba(168,85,247,0.15);color:var(--purple);border:1px solid var(--purple);}
+  .day-chevron{color:var(--muted);font-size:0.75rem;transition:transform 0.25s;flex-shrink:0;}
+  .day-chevron.open{transform:rotate(180deg);}
+  .day-body{background:var(--bg);border-top:1px solid var(--border);display:none;}
+  .day-body.open{display:block;}
+
+  .block{padding:12px 16px;border-bottom:1px solid var(--border);}
+  .block:last-child{border-bottom:none;}
+  .block-title{font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px;}
+  .block-title.matin{color:var(--accent2);}
+  .block-title.aprem{color:var(--blue);}
+  .block-title.soir{color:var(--purple);}
+  .block-title.info{color:var(--muted);}
+  .block-title.fixe{color:var(--green);}
+
+  .info-line{display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;font-size:0.84rem;}
+  .info-line:last-child{margin-bottom:0;}
+  .info-icon{font-size:0.9rem;flex-shrink:0;margin-top:1px;}
+  .info-text{color:var(--text);line-height:1.4;}
+  .info-text small{color:var(--muted);font-size:0.73rem;}
+
+  .options-grid{display:grid;gap:7px;}
+  .options-grid.col2{grid-template-columns:1fr 1fr;}
+  .option-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 11px;}
+  .option-card.selected{border-color:var(--accent2);background:rgba(245,166,35,0.06);}
+  .option-num{font-family:'Bebas Neue',sans-serif;font-size:0.82rem;letter-spacing:1px;margin-bottom:4px;}
+  .opt1 .option-num{color:var(--accent2);}
+  .opt2 .option-num{color:var(--blue);}
+  .opt3 .option-num{color:var(--purple);}
+  .opt4 .option-num{color:var(--green);}
+  .option-items{font-size:0.81rem;color:var(--text);line-height:1.55;}
+  .option-items .tag{display:inline-block;font-size:0.67rem;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:4px;padding:1px 5px;margin:1px 2px;}
+
+  .resto-list{display:flex;flex-direction:column;gap:5px;}
+  .resto-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 11px;display:flex;align-items:center;gap:9px;}
+  .resto-emoji{font-size:1rem;flex-shrink:0;}
+  .resto-name{font-size:0.83rem;font-weight:500;}
+  .resto-desc{font-size:0.71rem;color:var(--muted);margin-top:1px;}
+  .resto-tag{margin-left:auto;font-size:0.67rem;padding:2px 7px;border-radius:10px;flex-shrink:0;}
+  .tag-resto{background:rgba(232,70,42,0.12);color:var(--accent);border:1px solid rgba(232,70,42,0.3);}
+  .tag-bar{background:rgba(168,85,247,0.12);color:var(--purple);border:1px solid rgba(168,85,247,0.3);}
+  .tag-roof{background:rgba(245,166,35,0.12);color:var(--accent2);border:1px solid rgba(245,166,35,0.3);}
+  .note-box{background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);border-radius:8px;padding:9px 12px;font-size:0.79rem;color:var(--text);line-height:1.5;margin-top:6px;}
+  .note-box strong{color:var(--accent2);}
+
+  @media(max-width:480px){.options-grid.col2{grid-template-columns:1fr;}}
+
+  /* PAGE 3 : GUIDE */
+  .guide-header{background:linear-gradient(135deg,#0d0016 0%,#0f0f0f 60%);border-bottom:1px solid var(--border);padding:20px 24px 16px;}
+  .guide-header h2{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:2px;}
+  .guide-header h2 span{color:var(--purple);}
+  .guide-header .sub{font-size:0.73rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+  .guide-main{padding:16px;max-width:680px;margin:0 auto;padding-bottom:40px;}
+
+  .guide-section{margin-bottom:20px;}
+  .guide-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .guide-section-title.resto{color:var(--accent);}
+  .guide-section-title.activ{color:var(--blue);}
+  .guide-section-title.parcs{color:var(--green);}
+  .guide-section-title.pass{color:var(--accent2);}
+
+  .guide-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;}
+  .guide-card:hover{background:var(--card2);}
+  .guide-card-icon{font-size:1.5rem;flex-shrink:0;margin-top:2px;}
+  .guide-card-body{flex:1;}
+  .guide-card-name{font-size:0.9rem;font-weight:600;margin-bottom:3px;}
+  .guide-card-desc{font-size:0.78rem;color:var(--muted);line-height:1.45;}
+  .guide-card-tags{margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;}
+  .gtag{font-size:0.67rem;padding:2px 7px;border-radius:10px;border:1px solid;}
+  .gtag-red{color:var(--accent);border-color:rgba(232,70,42,0.35);background:rgba(232,70,42,0.08);}
+  .gtag-blue{color:var(--blue);border-color:rgba(74,158,255,0.35);background:rgba(74,158,255,0.08);}
+  .gtag-green{color:var(--green);border-color:rgba(76,175,125,0.35);background:rgba(76,175,125,0.08);}
+  .gtag-gold{color:var(--accent2);border-color:rgba(245,166,35,0.35);background:rgba(245,166,35,0.08);}
+  .gtag-purple{color:var(--purple);border-color:rgba(168,85,247,0.35);background:rgba(168,85,247,0.08);}
+
+  .pass-box{background:linear-gradient(135deg,rgba(245,166,35,0.08),rgba(168,85,247,0.05));border:1px solid rgba(245,166,35,0.3);border-radius:12px;padding:16px;}
+  .pass-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1.5px;color:var(--accent2);margin-bottom:8px;}
+  .pass-verdict{font-size:0.82rem;background:rgba(76,175,125,0.1);border:1px solid rgba(76,175,125,0.3);border-radius:8px;padding:10px 12px;margin-top:10px;color:var(--text);line-height:1.5;}
+  .pass-verdict strong{color:var(--green);}
+  .pass-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
+  .pass-opt{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;}
+  .pass-opt-price{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--accent2);}
+  .pass-opt-label{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+  .pass-opt-detail{font-size:0.78rem;color:var(--text);margin-top:4px;}
+  .pass-included{margin-top:10px;}
+  .pass-included-title{font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:6px;}
+  .pass-item{font-size:0.81rem;padding:5px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+  .pass-item:last-child{border-bottom:none;}
+  .pass-cat{font-size:0.65rem;padding:1px 6px;border-radius:8px;flex-shrink:0;}
+  .cat-pink{background:rgba(232,70,42,0.15);color:#ff8a7a;}
+  .cat-blue{background:rgba(74,158,255,0.15);color:var(--blue);}
+
+  /* MÉTÉO PAR JOUR */
+  .day-weather{display:inline-flex;align-items:center;gap:5px;background:rgba(74,158,255,0.1);border:1px solid rgba(74,158,255,0.2);border-radius:20px;padding:2px 10px;font-size:0.72rem;color:var(--blue);margin-left:auto;flex-shrink:0;}
+
+  /* LAYOUT 2 COLONNES PLANNING */
+  .planning-layout{display:grid;grid-template-columns:1fr 300px;gap:0;height:calc(100vh - 48px);overflow:hidden;}
+  .planning-left{overflow-y:auto;padding-bottom:40px;}
+  .planning-right{background:var(--card);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;}
+  .side-panel-header{padding:14px 16px;border-bottom:1px solid var(--border);font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1.5px;color:var(--blue);flex-shrink:0;}
+  .side-panel-body{padding:12px;flex:1;overflow-y:auto;}
+
+  /* ACTIVITÉS DRAGGABLES */
+  .activity-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:6px;cursor:grab;display:flex;align-items:center;gap:8px;transition:all 0.2s;user-select:none;}
+  .activity-item:hover{border-color:var(--accent2);background:rgba(245,166,35,0.05);}
+  .activity-item.dragging{opacity:0.4;cursor:grabbing;}
+  .activity-item.drag-over{border-color:var(--blue);border-style:dashed;}
+  .activity-icon{font-size:1rem;flex-shrink:0;}
+  .activity-text{flex:1;font-size:0.8rem;color:var(--text);line-height:1.3;}
+  .activity-text small{color:var(--muted);font-size:0.7rem;}
+  .activity-drag-handle{color:var(--border);font-size:0.8rem;cursor:grab;flex-shrink:0;}
+  .activity-click{width:20px;height:20px;border:1px solid var(--border);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.7rem;color:var(--muted);transition:all 0.2s;}
+  .activity-click:hover{border-color:var(--accent2);color:var(--accent2);}
+  .activity-item.is-option{opacity:0.6;border-style:dashed;}
+  .activity-item.is-option .activity-text{color:var(--muted);}
+
+  /* OPTIONS SIDE PANEL */
+  .option-group{margin-bottom:14px;}
+  .option-group-title{font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+  .option-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.2);border-radius:6px;padding:5px 9px;margin:3px 2px;font-size:0.75rem;color:var(--blue);cursor:pointer;transition:all 0.2s;}
+  .option-pill:hover{background:rgba(74,158,255,0.2);border-color:var(--blue);}
+  .option-pill.rainy{background:rgba(76,175,125,0.08);border-color:rgba(76,175,125,0.3);color:var(--green);}
+  .option-pill.rainy:hover{background:rgba(76,175,125,0.2);}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+  .modal-overlay.hidden{display:none;}
+  .modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:560px;max-height:80vh;overflow-y:auto;animation:slideUp 0.25s ease;}
+  @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:1.5px;color:var(--text);margin-bottom:4px;}
+  .modal-current{font-size:0.8rem;color:var(--muted);margin-bottom:14px;padding:8px 10px;background:var(--bg);border-radius:6px;}
+  .modal-section-title{font-size:0.67rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;margin:10px 0 6px;}
+  .modal-alt{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:all 0.2s;}
+  .modal-alt:hover{border-color:var(--accent2);background:rgba(245,166,35,0.05);}
+  .modal-alt.rainy-alt{border-color:rgba(76,175,125,0.3);background:rgba(76,175,125,0.05);}
+  .modal-alt.rainy-alt:hover{border-color:var(--green);background:rgba(76,175,125,0.1);}
+  .modal-alt-icon{font-size:1.2rem;flex-shrink:0;}
+  .modal-alt-text{flex:1;}
+  .modal-alt-name{font-size:0.85rem;font-weight:500;color:var(--text);}
+  .modal-alt-desc{font-size:0.72rem;color:var(--muted);margin-top:1px;}
+  .modal-alt-tag{font-size:0.65rem;padding:2px 6px;border-radius:6px;flex-shrink:0;}
+  .modal-close{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;margin-top:10px;}
+  .modal-close:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* SAVE INDICATOR */
+  .save-indicator{position:fixed;bottom:16px;right:16px;background:var(--green);color:#000;font-size:0.72rem;padding:5px 12px;border-radius:20px;z-index:500;opacity:0;transition:opacity 0.3s;font-weight:600;}
+  .save-indicator.show{opacity:1;}
+
+  @media(max-width:700px){
+    .planning-layout{grid-template-columns:1fr;height:auto;}
+    .planning-right{display:none;}
+  }
+
+  /* CARTE */
+  .map-header{background:linear-gradient(135deg,#001510 0%,#0f0f0f 60%);border-bottom:1px solid var(--border);padding:20px 24px 16px;}
+  .map-header h2{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:2px;}
+  .map-header h2 span{color:var(--green);}
+  .map-header .sub{font-size:0.73rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+  #map-container{height:calc(100vh - 160px);width:100%;}
+  .map-legend{background:var(--card);border-top:1px solid var(--border);padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;}
+  .map-legend-item{display:flex;align-items:center;gap:5px;font-size:0.72rem;color:var(--muted);}
+  .map-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <button class="nav-btn active" id="nav-planning" onclick="showPage('planning')">🗓️ Planning</button>
+  <button class="nav-btn" id="nav-valise" onclick="showPage('valise')">🧳 Valise</button>
+  <button class="nav-btn" id="nav-prep" onclick="showPage('prep')">📋 Préparer</button>
+  <button class="nav-btn" id="nav-guide" onclick="showPage('guide')">🍽️ Guide</button>
+  <button class="nav-btn" id="nav-map" onclick="showPage('map')">🗺️ Carte</button>
+  <button class="nav-btn" id="nav-tools" onclick="showPage('tools')">🛠️ Outils</button>
+</nav>
+
+<!-- PAGE 1 : VALISE -->
+<div class="page" id="page-valise">
+<header>
+  <div class="header-top">
+    <div><h1>VALISE <span>MONTRÉAL</span></h1><div class="trip-info">✈️ 16–27 Avril 2026 &nbsp;·&nbsp; 10 jours &nbsp;·&nbsp; 23 kg max</div></div>
+    <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text"><span id="progressText">0 article coché</span><strong id="progressPct">0%</strong></div>
+  </div>
+</header>
+<main>
+  <div class="avion-banner"><div style="font-size:1.4rem">✈️</div><div class="text"><strong>Départ 7h du matin</strong><br>Colmar épaisse sur toi + bagage cabine + valise soute étiquetée</div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('vestes')"><div class="section-title"><span>🧥</span> Vestes</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-vestes">0/2</span><span class="chevron open" id="chev-vestes">▼</span></div></div><div class="section-items open" id="items-vestes">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Colmar fine avec capuche</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Veste fine ski / dress</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('tshirts')"><div class="section-title"><span>👕</span> T-shirts de jour</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-tshirts">0/10</span><span class="chevron open" id="chev-tshirts">▼</span></div></div><div class="section-items open" id="items-tshirts">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt 1</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt 2</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt 3</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt 4</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt 5</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt 6</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt 7</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt 8</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt 9</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt 10</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('hauts')"><div class="section-title"><span>🧶</span> Hauts chauds</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-hauts">0/6</span><span class="chevron open" id="chev-hauts">▼</span></div></div><div class="section-items open" id="items-hauts">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Sweat 1</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Sweat 2</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Pull habillé 1</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Pull habillé 2</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Sweat à capuche</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Chemise</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('pyjama')"><div class="section-title"><span>😴</span> Pyjama / sport</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-pyjama">0/4</span><span class="chevron open" id="chev-pyjama">▼</span></div></div><div class="section-items open" id="items-pyjama">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Short pyjama 1</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Short pyjama 2</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt pyjama 1</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">T-shirt pyjama 2</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('bas')"><div class="section-title"><span>👖</span> Bas</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-bas">0/5</span><span class="chevron open" id="chev-bas">▼</span></div></div><div class="section-items open" id="items-bas">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Jean / pantalon 1</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Jean / pantalon 2</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Jean / pantalon 3</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Jogging / détente 1</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Jogging / détente 2</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('maillots')"><div class="section-title"><span>🩱</span> Maillots de bain</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-maillots">0/2</span><span class="chevron open" id="chev-maillots">▼</span></div></div><div class="section-items open" id="items-maillots">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Maillot de bain 1</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Maillot de bain 2</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('sous')"><div class="section-title"><span>🩲</span> Sous-vêtements</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-sous">0/2</span><span class="chevron open" id="chev-sous">▼</span></div></div><div class="section-items open" id="items-sous">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Boxers</span><span class="item-qty">×11</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Paires de chaussettes (dont 2-3 chaudes)</span><span class="item-qty">×11</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('chaussures')"><div class="section-title"><span>👟</span> Chaussures</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-chaussures">0/3</span><span class="chevron open" id="chev-chaussures">▼</span></div></div><div class="section-items open" id="items-chaussures">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Sneakers imperméables / marche</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Chaussures soirée / détente</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Tongs</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('accessoires')"><div class="section-title"><span>🎒</span> Accessoires</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-accessoires">0/2</span><span class="chevron open" id="chev-accessoires">▼</span></div></div><div class="section-items open" id="items-accessoires">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Écharpe légère</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Parapluie compact</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('toilette')"><div class="section-title"><span>🧴</span> Trousse de toilette</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-toilette">0/17</span><span class="chevron open" id="chev-toilette">▼</span></div></div><div class="section-items open" id="items-toilette">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Brosse à dents électrique</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Brossette de rechange</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Dentifrice</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Bain de bouche</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Tondeuse barbe</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Mini tondeuse</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Parfum</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Gel douche</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Shampoing</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Crème hydratante corps</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Nettoyant visage</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Crème hydratante visage</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Crème UV / solaire</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Déodorant</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Préservatifs</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Brosse à cheveux</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Fer à coiffer / coiffage</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('pharmacie')"><div class="section-title"><span>💊</span> Pharmacie</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-pharmacie">0/3</span><span class="chevron open" id="chev-pharmacie">▼</span></div></div><div class="section-items open" id="items-pharmacie">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Doliprane</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Charbon activé</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Mélatonine (décalage horaire)</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('elec')"><div class="section-title"><span>💻</span> Électronique — valise</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-elec">0/5</span><span class="chevron open" id="chev-elec">▼</span></div></div><div class="section-items open" id="items-elec">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Prise adaptateur Canada (110V)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Chargeur cigarette électronique</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Souris</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Manette</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Cadenas TSA 🛒 À acheter</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('cabine')"><div class="section-title"><span>🎒</span> Sac à dos cabine</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-cabine">0/13</span><span class="chevron open" id="chev-cabine">▼</span></div></div><div class="section-items open" id="items-cabine">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Ordinateur portable</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Chargeur téléphone</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Batterie de secours (powerbank)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Écouteurs</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Casque</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Cigarette électronique ⚠️ obligatoire cabine</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Batterie cigarette électronique ⚠️ obligatoire cabine</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Liquide cigarette élec (≤100ml)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Documents (passeport, billets, etc.)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Coussin de voyage</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Lingettes</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Gel hydroalcoolique</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Téléphone</span></div>
+  </div></div>
+
+  <div class="weight-card">
+    <div><div class="weight-val">~15</div><div class="weight-label">kg estimés</div></div>
+    <div class="weight-divider"></div>
+    <div><div class="weight-val">4,6</div><div class="weight-label">kg valise vide</div></div>
+    <div class="weight-divider"></div>
+    <div><div class="weight-val green">~3</div><div class="weight-label">kg pour achats</div></div>
+  </div>
+</main>
+</div>
+
+<!-- PAGE PRÉPARER -->
+<div class="page" id="page-prep">
+<div class="planning-header" style="background:linear-gradient(135deg,#001020 0%,#0f0f0f 60%);">
+  <h2 style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:2px;">PRÉPARER <span style="color:var(--blue);">LE VOYAGE</span> 📋</h2>
+  <div class="sub">Documents, tâches & à faire avant de partir</div>
+</div>
+<main>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('docs')"><div class="section-title"><span>🗂️</span> Documents à imprimer</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-docs">0/4</span><span class="chevron open" id="chev-docs">▼</span></div></div><div class="section-items open" id="items-docs">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Billet d'avion (aller + retour)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Réservation hôtel / Airbnb</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Confirmation enregistrement hôtel</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Formulaire douane canadienne</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('identite')"><div class="section-title"><span>🪪</span> Documents essentiels</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-identite">0/5</span><span class="chevron open" id="chev-identite">▼</span></div></div><div class="section-items open" id="items-identite">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Passeport (valide 6 mois après retour)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Carte d'identité (backup)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Revolut (sur tél) + Fortuneo Gold (backup)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Assurance voyage Fortuneo Gold ✅ incluse</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">AVE Canada (autorisation électronique)</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('todo')"><div class="section-title"><span>✅</span> À faire avant de partir</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-todo">0/28</span><span class="chevron open" id="chev-todo">▼</span></div></div><div class="section-items open" id="items-todo">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Faire le change en dollars canadiens (CAD)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Acheter une eSIM Canada (Airalo)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Mettre les caméras en place (maison)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Reprendre / activer l'abonnement caméras</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Mettre l'alarme</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Prendre Spotify Premium</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Télécharger films / séries sur Prime Video</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Préparer ce que je veux faire sur l'ordi pendant l'avion</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Faire le ménage</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Faire le repassage des vêtements</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Vider le frigo / jeter ce qui va périmer</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Couper / baisser le chauffage</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Prévenir un voisin / proche (clé urgence)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Arroser les plantes</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Vérifier carte bleue fonctionne à l'étranger</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Prévenir la banque du départ au Canada</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Désactiver le roaming data</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Télécharger Google Maps hors ligne Montréal</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Check-in en ligne (24h avant le vol)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Réserver Uber aéroport → départ (7h matin)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Peser la valise (max 23 kg)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Mettre le cadenas TSA sur la valise</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Charger téléphone à fond la veille</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Télécharger Uber / installer apps Canada</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Épilation avant le départ</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Soin du visage avant le départ</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Débrancher les fils / appareils électriques</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Étiqueter les bagages (nom, tél, adresse)</span></div>
+  </div></div>
+
+  <div class="section"><div class="section-header" onclick="toggleSection('charge')"><div class="section-title"><span>⚡</span> À charger avant de partir</div><div style="display:flex;align-items:center;gap:8px"><span class="section-count" id="count-charge">0/7</span><span class="chevron open" id="chev-charge">▼</span></div></div><div class="section-items open" id="items-charge">
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Brosse à dents électrique</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Tondeuse barbe</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Mini tondeuse</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Écouteurs</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Casque</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Batterie de secours (powerbank)</span></div>
+    <div class="item" onclick="toggle(this)"><div class="checkbox"><span class="checkmark">✓</span></div><span class="item-label">Téléphone</span></div>
+  </div></div>
+
+</main>
+</div>
+
+<!-- PAGE 2 : PLANNING -->
+<div class="page active" id="page-planning">
+<div class="planning-header">
+  <h2>PLANNING <span>MONTRÉAL</span> 🍁</h2>
+  <div class="sub">16 – 27 Avril 2026 &nbsp;·&nbsp; 11 jours &nbsp;·&nbsp; Canada</div>
+</div>
+
+<!-- WIDGET MÉTÉO MULTI-VILLES -->
+<div id="weather-widget" style="background:var(--card);border-bottom:1px solid var(--border);padding:16px;">
+
+  <!-- Sélecteur de ville -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;">
+    <button onclick="switchCity('montreal')" id="city-montreal" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--accent2);background:rgba(245,166,35,0.15);color:var(--accent2);font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:1px;cursor:pointer;">🏙️ Montréal</button>
+    <button onclick="switchCity('quebec')" id="city-quebec" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:1px;cursor:pointer;">🏰 Québec</button>
+    <button onclick="switchCity('sherbrooke')" id="city-sherbrooke" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:1px;cursor:pointer;">🌲 Sherbrooke</button>
+  </div>
+
+  <div id="weather-loading" style="font-size:0.82rem;color:var(--muted);text-align:center;padding:12px;">Chargement météo...</div>
+
+  <div id="weather-content" style="display:none;">
+    <!-- Météo actuelle -->
+    <div style="display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">
+      <div style="text-align:center;">
+        <div id="w-icon" style="font-size:3rem;line-height:1;"></div>
+        <div id="w-desc" style="font-size:0.68rem;color:var(--muted);margin-top:4px;max-width:70px;text-align:center;"></div>
+      </div>
+      <div>
+        <div id="w-temp" style="font-family:'Bebas Neue',sans-serif;font-size:3.2rem;color:var(--accent2);line-height:1;"></div>
+        <div id="w-feels" style="font-size:0.75rem;color:var(--muted);margin-top:3px;"></div>
+        <div id="w-wind" style="font-size:0.75rem;color:var(--muted);margin-top:2px;"></div>
+        <div id="w-humidity" style="font-size:0.75rem;color:var(--muted);margin-top:2px;"></div>
+      </div>
+      <div style="text-align:right;">
+        <div id="w-hilo" style="font-size:0.9rem;color:var(--text);font-weight:600;"></div>
+        <div id="w-rain" style="font-size:0.75rem;color:var(--blue);margin-top:5px;"></div>
+        <div id="w-city-name" style="font-size:0.68rem;color:var(--muted);margin-top:8px;text-transform:uppercase;letter-spacing:1px;"></div>
+        <div id="w-updated" style="font-size:0.65rem;color:var(--muted);margin-top:3px;"></div>
+      </div>
+    </div>
+
+    <!-- Prévisions 7 jours -->
+    <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600;margin-bottom:6px;">Prévisions 7 jours</div>
+    <div id="w-forecast" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;"></div>
+
+    <!-- Lien météo complète -->
+    <div style="margin-top:10px;text-align:right;">
+      <a id="w-link" href="#" target="_blank" style="font-size:0.72rem;color:var(--blue);text-decoration:none;">📱 Météo complète MétéoMédia →</a>
+    </div>
+  </div>
+
+  <div id="weather-error" style="display:none;font-size:0.8rem;color:var(--muted);text-align:center;padding:10px;">
+    ⚠️ Météo indisponible — <a href="https://www.meteomedia.com/ca/meteo/montreal" target="_blank" style="color:var(--blue);">MétéoMédia →</a>
+  </div>
+</div>
+<div class="planning-layout">
+<div class="planning-left">
+<div class="planning-main">
+
+  <!-- ACTIVITÉS JOUR DE PLUIE -->
+  <div class="day-card" style="border-color:rgba(74,158,255,0.3);">
+    <div class="day-header" style="background:rgba(74,158,255,0.08);" onclick="toggleDay('dpluie')">
+      <div class="day-date" style="color:var(--blue);">🌧️ Si il pleut — Activités intérieures</div>
+      <span class="day-chevron" id="chev-dpluie">▼</span>
+    </div>
+    <div class="day-body" id="body-dpluie">
+      <div class="block">
+        <div class="info-line"><span class="info-icon">🌀</span><span class="info-text"><strong>OASIS Immersion</strong> <small>— 100% intérieur, spectaculaire</small></span></div>
+        <div class="info-line"><span class="info-icon">🔦</span><span class="info-text"><strong>SOS Labyrinthe</strong> <small>— Vieux-Port, intérieur, fun</small></span></div>
+        <div class="info-line"><span class="info-icon">🏰</span><span class="info-text"><strong>Basilique Notre-Dame</strong> <small>— architecture + AURA le soir</small></span></div>
+        <div class="info-line"><span class="info-icon">🌿</span><span class="info-text"><strong>Biodôme</strong> <small>— 5 écosystèmes, 100% intérieur</small></span></div>
+        <div class="info-line"><span class="info-icon">🏟️</span><span class="info-text"><strong>RÉSO — Montréal souterrain</strong> <small>— 33km de tunnels, galeries, shopping</small></span></div>
+        <div class="info-line"><span class="info-icon">🚌</span><span class="info-text"><strong>Visite en bus Hop-on Hop-off</strong> <small>— tu es abrité dans le bus</small></span></div>
+        <div class="info-line"><span class="info-icon">🧖</span><span class="info-text"><strong>Bota Bota Spa</strong> <small>— bains nordiques sous la pluie, c'est encore mieux !</small></span></div>
+        <div class="info-line"><span class="info-icon">🛒</span><span class="info-text"><strong>Marché Jean-Talon / Atwater</strong> <small>— couverts et chaleureux</small></span></div>
+        <div class="info-line"><span class="info-icon">🎪</span><span class="info-text"><strong>Spectacle TOHU</strong> <small>— salle de spectacle couverte</small></span></div>
+        <div class="info-line"><span class="info-icon">🏒</span><span class="info-text"><strong>Match Canadiens de Montréal</strong> <small>— Centre Bell, 100% intérieur</small></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 16 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d16')"><div class="day-date">📅 Jeudi 16 Avril — Arrivée Montréal</div><span class="day-badge badge-done">Fixé ✓</span><span class="day-chevron open" id="chev-d16">▼</span></div>
+    <div class="day-body open" id="body-d16">
+      <div class="block"><div class="block-title info">Logistique</div>
+        <div class="info-line"><span class="info-icon">✈️</span><span class="info-text">Arrivée 12h — Douane + récupération voiture</span></div>
+        <div class="info-line"><span class="info-icon">🏠</span><span class="info-text"><strong>Airbnb Montréal</strong> — 4465 Rue Saint-Dominique, Montréal H2W 2B4 <small>· Hôte : Mohamed · ☎ +1 438-228-8897 · Code : HMBHSWB9XN · Check-in 15h</small></span></div>
+      </div>
+      <div class="block"><div class="block-title aprem">Après-midi / Soir</div>
+        <div class="info-line"><span class="info-icon">📍</span><span class="info-text">Vieux-Port de Montréal <small>— balade de bienvenue</small></span></div>
+        <div class="info-line"><span class="info-icon">📍</span><span class="info-text">Quartier chinois <small>— flâner, street food</small></span></div>
+        <div class="info-line"><span class="info-icon">🌄</span><span class="info-text">Mont Royal au sunset 🔥 <small>— vue imprenable sur la ville</small></span></div>
+      </div>
+      <div class="block"><div class="block-title soir">Restos recommandés</div>
+        <div class="resto-list">
+          <div class="resto-item"><span class="resto-emoji">🍕</span><div><div class="resto-name">Bevo Bar + Pizzeria</div><div class="resto-desc">Vieux-Montréal — pizza artisanale, ambiance animée</div></div><span class="resto-tag tag-resto">Resto</span></div>
+          <div class="resto-item"><span class="resto-emoji">🍔</span><div><div class="resto-name">L'Gros Luxe</div><div class="resto-desc">Plateau — burgers festifs, parfait premier soir décontracté</div></div><span class="resto-tag tag-resto">Resto</span></div>
+          <div class="resto-item"><span class="resto-emoji">🐟</span><div><div class="resto-name">Liverpool House</div><div class="resto-desc">Griffintown — table emblématique, cuisine franco-québécoise raffinée</div></div><span class="resto-tag tag-resto">Resto</span></div>
+          <div class="resto-item"><span class="resto-emoji">🍺</span><div><div class="resto-name">Dieu du Ciel !</div><div class="resto-desc">Plateau — microbrasserie culte, bières artisanales + plats du soir</div></div><span class="resto-tag tag-resto">Resto</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 17 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d17')"><div class="day-date">📅 Vendredi 17 Avril — Saint-Sauveur</div><span class="day-badge badge-done">Fixé ✓</span><span class="day-chevron open" id="chev-d17">▼</span></div>
+    <div class="day-body open" id="body-d17">
+      <div class="block"><div class="block-title fixe">Programme</div>
+        <div class="info-line"><span class="info-icon">🌊</span><span class="info-text">Balade autour du lac <small>— air frais, Laurentides</small></span></div>
+        <div class="info-line"><span class="info-icon">😎</span><span class="info-text">Chill & détente</span></div>
+        <div class="info-line"><span class="info-icon">🍻</span><span class="info-text">Soirée avec amis</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 18 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d18')"><div class="day-date">📅 Samedi 18 Avril — Parc Oméga</div><span class="day-badge badge-done">Fixé ✓</span><span class="day-chevron open" id="chev-d18">▼</span></div>
+    <div class="day-body open" id="body-d18">
+      <div class="block"><div class="block-title fixe">Programme</div>
+        <div class="info-line"><span class="info-icon">🦌</span><span class="info-text">Safari Parc Oméga <small>— wapitis, loups, ours noirs en liberté</small></span></div>
+        <div class="info-line"><span class="info-icon">🌲</span><span class="info-text">Nature & randonnée légère</span></div>
+        <div class="info-line"><span class="info-icon">🏰</span><span class="info-text">Arrêt Montebello <small>— Château Montebello, village typique</small></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 19 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d19')"><div class="day-date">📅 Dimanche 19 Avril — Québec City</div><span class="day-badge badge-done">Fixé ✓</span><span class="day-chevron open" id="chev-d19">▼</span></div>
+    <div class="day-body open" id="body-d19">
+      <div class="block"><div class="block-title fixe">Programme</div>
+        <div class="info-line"><span class="info-icon">🚗</span><span class="info-text">Route Montréal → Québec <small>~2h30</small></span></div>
+        <div class="info-line"><span class="info-icon">🏠</span><span class="info-text"><strong>Airbnb Québec City</strong> — 679 Avenue Royale, Vieux-Beauport G1E 1Z1 <small>· Hôte : Gabriel · ☎ +1 418-264-9364 · Code : HMMNYYFXCR · Check-in 16h — Check-out 11h le 20</small></span></div>
+        <div class="info-line"><span class="info-icon">🏰</span><span class="info-text">Château Frontenac <small>— l'icône de Québec</small></span></div>
+        <div class="info-line"><span class="info-icon">🌉</span><span class="info-text">Terrasse Dufferin <small>— vue sur le Saint-Laurent</small></span></div>
+        <div class="info-line"><span class="info-icon">🛍️</span><span class="info-text">Quartier Petit Champlain <small>— plus vieux quartier commercial d'Amérique du Nord</small></span></div>
+      </div>
+      <div class="block"><div class="block-title soir">Restos recommandés — Québec City</div>
+        <div class="resto-list">
+          <div class="resto-item"><span class="resto-emoji">🍽️</span><div><div class="resto-name">Le Lapin Sauté</div><div class="resto-desc">Petit Champlain — cuisine québécoise typique, incontournable</div></div><span class="resto-tag tag-resto">Resto</span></div>
+          <div class="resto-item"><span class="resto-emoji">🥩</span><div><div class="resto-name">Aux Anciens Canadiens</div><div class="resto-desc">Vieux-Québec — restaurant historique dans maison 1675, tourtière et caribou</div></div><span class="resto-tag tag-resto">Resto</span></div>
+          <div class="resto-item"><span class="resto-emoji">🍺</span><div><div class="resto-name">Le Pub Saint-Patrick</div><div class="resto-desc">Vieux-Québec — ambiance irlandaise, bières locales, soirée conviviale</div></div><span class="resto-tag tag-bar">Bar</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 20 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d20')"><div class="day-date">📅 Lundi 20 Avril — Québec → Sherbrooke</div><span class="day-badge badge-done">Fixé ✓</span><span class="day-chevron open" id="chev-d20">▼</span></div>
+    <div class="day-body open" id="body-d20">
+      <div class="block"><div class="block-title fixe">Programme</div>
+        <div class="info-line"><span class="info-icon">🍽️</span><span class="info-text">Repas avec Vincent</span></div>
+        <div class="info-line"><span class="info-icon">🚗</span><span class="info-text">Route Québec → Sherbrooke <small>~1h45</small></span></div>
+        <div class="info-line"><span class="info-icon">🏡</span><span class="info-text"><strong>Chalet Le Sofia</strong> — 82 8e Rang Est, Notre-Dame-des-Bois J0B 2E0 <small>· Hôte : Mathieu · ☎ +1 438-378-3935 · Code : HM2KSW2ZEB · Check-in 16h</small></span></div>
+        <div class="info-line"><span class="info-icon">😎</span><span class="info-text">Chill à l'arrivée</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 21 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d21')"><div class="day-date">📅 Mardi 21 Avril — Sherbrooke</div><span class="day-badge badge-done">Fixé ✓</span><span class="day-chevron open" id="chev-d21">▼</span></div>
+    <div class="day-body open" id="body-d21">
+      <div class="block"><div class="block-title fixe">Programme</div>
+        <div class="info-line"><span class="info-icon">🌊</span><span class="info-text">Lac des Nations <small>— balade bord de lac, centre-ville</small></span></div>
+        <div class="info-line"><span class="info-icon">🧖</span><span class="info-text">Spa nordique <small>— bien mérité après les jours de route</small></span></div>
+        <div class="info-line"><span class="info-icon">😴</span><span class="info-text">Détente totale</span></div>
+      </div>
+      <div class="block"><div class="block-title soir">Restos — Sherbrooke</div>
+        <div class="resto-list">
+          <div class="resto-item"><span class="resto-emoji">🍕</span><div><div class="resto-name">Boucherie Centrale</div><div class="resto-desc">Sherbrooke — resto bistro local, viandes du terroir, ambiance chaleureuse</div></div><span class="resto-tag tag-resto">Resto</span></div>
+          <div class="resto-item"><span class="resto-emoji">🍺</span><div><div class="resto-name">Le Siboire</div><div class="resto-desc">Sherbrooke — microbrasserie culte de la région, bières artisanales + cuisine</div></div><span class="resto-tag tag-resto">Resto</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 22 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d22')"><div class="day-date">📅 Mercredi 22 Avril — Retour Montréal</div><span class="day-badge badge-done">Fixé ✓</span><span class="day-chevron open" id="chev-d22">▼</span></div>
+    <div class="day-body open" id="body-d22">
+      <div class="block"><div class="block-title info">Logistique</div>
+        <div class="info-line"><span class="info-icon">🚌</span><span class="info-text">Limocar 15h30 → 17h50 Montréal</span></div>
+        <div class="info-line"><span class="info-icon">🏨</span><span class="info-text"><strong>Holiday Inn &amp; Suites Montréal Centre-Ville Ouest</strong> <small>· Check-in dès l'arrivée</small></span></div>
+      </div>
+      <div class="block"><div class="block-title soir">🌇 Soir — Plan validé ✅</div>
+        <div class="info-line"><span class="info-icon">🚶</span><span class="info-text">Balade Vieux-Port + Rue Saint-Paul</span></div>
+        <div class="resto-list" style="margin-top:8px">
+          <div class="resto-item"><span class="resto-emoji">🍕</span><div><div class="resto-name">Bevo Bar + Pizzeria</div><div class="resto-desc">Vieux-Montréal — pizza napolitaine, bar animé</div></div><span class="resto-tag tag-resto">Resto</span></div>
+          <div class="resto-item"><span class="resto-emoji">🌅</span><div><div class="resto-name">Terrasse William Gray</div><div class="resto-desc">Rooftop vue Vieux-Port — must do ⚠️ Réserver à l'avance</div></div><span class="resto-tag tag-roof">Rooftop</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 23 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d23')"><div class="day-date">📅 Jeudi 23 Avril — Mile End + Culture</div><span class="day-badge badge-done">Fixé ✓</span><span class="day-chevron open" id="chev-d23">▼</span></div>
+    <div class="day-body open" id="body-d23">
+      <div class="block"><div class="block-title matin">☀️ Matin — Fixé ✅</div>
+        <div class="info-line"><span class="info-icon">📍</span><span class="info-text">Mile End <small>— street art, bagels St-Viateur chauds en balade</small></span></div>
+        <div class="info-line"><span class="info-icon">📍</span><span class="info-text">Boulevard Saint-Laurent <small>— brunch / café / chill</small></span></div>
+      </div>
+      <div class="block"><div class="block-title aprem">🌤️ Après-midi — Fixé ✅</div>
+        <div class="info-line"><span class="info-icon">🌀</span><span class="info-text"><strong>OASIS Immersion</strong> <small>— expérience multimédia immersive ⚠️ Réserver à l'avance — Pass MTL 💗</small></span></div>
+        <div class="info-line"><span class="info-icon">🎡</span><span class="info-text"><strong>Grande Roue de Montréal</strong> <small>— 60m, vue 360° sur la ville et le fleuve — Pass MTL 💗</small></span></div>
+      </div>
+      <div class="block"><div class="block-title soir">🌇 Soir — Fixé ✅</div>
+        <div class="resto-list">
+          <div class="resto-item"><span class="resto-emoji">🥩</span><div><div class="resto-name">Wolf &amp; Workman</div><div class="resto-desc">Steakhouse moderne, parfait pour une belle soirée</div></div><span class="resto-tag tag-resto">Resto</span></div>
+          <div class="resto-item"><span class="resto-emoji">🕺</span><div><div class="resto-name">Clandestino</div><div class="resto-desc">Bar cocktails secret, vibe underground</div></div><span class="resto-tag tag-bar">Bar</span></div>
+        </div>
+        <div class="note-box"><strong>🎪 Option soirée :</strong> Spectacle <strong>Ten Thousand Hours — TOHU</strong> (23-26 avril) — 8 acrobates de classe mondiale, percussions live. 👉 tohu.ca</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 24 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d24')"><div class="day-date">📅 Vendredi 24 Avril — Marché + Canal + Nouveaux Quartiers</div><span class="day-badge badge-done">Fixé ✓</span><span class="day-chevron open" id="chev-d24">▼</span></div>
+    <div class="day-body open" id="body-d24">
+      <div class="block"><div class="block-title info">Logistique</div>
+        <div class="info-line"><span class="info-icon">🏨</span><span class="info-text"><strong>Changement → Hotel Monville</strong> — 1041 Rue De Bleury, Montréal <small>· Check-out Holiday Inn → Check-in Monville</small></span></div>
+      </div>
+      <div class="block"><div class="block-title matin">☀️ Matin — Fixé ✅</div>
+        <div class="info-line"><span class="info-icon">🛒</span><span class="info-text"><strong>Marché Atwater</strong> <small>— spécialités locales, fromages québécois, boulangeries</small></span></div>
+        <div class="info-line"><span class="info-icon">🌊</span><span class="info-text"><strong>Canal de Lachine</strong> <small>— balade bord de canal, vélo possible</small></span></div>
+        <div class="options-grid col2" style="margin-top:8px">
+          <div class="option-card opt2"><div class="option-num">🔵 OPTION BONUS</div><div class="option-items">🌿 Biodôme + 🌸 Jardin botanique<br><span class="tag">Pass MTL 💙</span><span class="tag">secteur olympique</span><span class="tag">si tu veux le pass 5 attraits</span></div></div>
+          <div class="option-card opt3"><div class="option-num">🔵 OPTION BONUS</div><div class="option-items">🏟️ Stade olympique<br><span class="tag">50e anniversaire JO 2026 !</span><span class="tag">activités spéciales</span></div></div>
+        </div>
+      </div>
+      <div class="block"><div class="block-title aprem">🌤️ Après-midi — Fixé ✅</div>
+        <div class="info-line"><span class="info-icon">📍</span><span class="info-text"><strong>Griffintown</strong> <small>— street art, galeries, quartier en essor</small></span></div>
+        <div class="info-line"><span class="info-icon">📍</span><span class="info-text"><strong>RÉSO — Montréal souterrain</strong> <small>— tunnels, galeries marchandes + shopping</small></span></div>
+      </div>
+      <div class="block"><div class="block-title soir">🌇 Soir — Fixé ✅</div>
+        <div class="info-line"><span class="info-icon">📍</span><span class="info-text">Boulevard Saint-Laurent</span></div>
+        <div class="resto-list" style="margin-top:8px">
+          <div class="resto-item"><span class="resto-emoji">🌮</span><div><div class="resto-name">Elena</div><div class="resto-desc">Little Italy — cuisine créative, ambiance cool</div></div><span class="resto-tag tag-resto">Resto</span></div>
+          <div class="resto-item"><span class="resto-emoji">🎵</span><div><div class="resto-name">Santos Tapas Bar</div><div class="resto-desc">Ambiance festive, tapas + musique</div></div><span class="resto-tag tag-bar">Bar</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 25 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d25')"><div class="day-date">📅 Samedi 25 Avril — Dernier Gros Jour 🔥</div><span class="day-badge badge-key">Clé</span><span class="day-chevron open" id="chev-d25">▼</span></div>
+    <div class="day-body open" id="body-d25">
+      <div class="block"><div class="block-title matin">☀️ Matin — Fixé ✅</div>
+        <div class="info-line"><span class="info-icon">🪂</span><span class="info-text"><strong>Montréal Bungee</strong> — saut à l'élastique + tyrolienne <small>⚠️ Réserver sur montrealbungee.com</small></span></div>
+        <div class="options-grid col2" style="margin-top:8px">
+          <div class="option-card opt2"><div class="option-num">🔵 OPTION BONUS</div><div class="option-items">🛒 Marché Jean-Talon<br><span class="tag">Petite Italie</span><span class="tag">produits du terroir</span><span class="tag">sirop d'érable</span></div></div>
+          <div class="option-card opt3"><div class="option-num">🔵 OPTION BONUS</div><div class="option-items">⛪ Oratoire Saint-Joseph<br><span class="tag">dôme 97m</span><span class="tag">vue panoramique</span><span class="tag">gratuit extérieur</span></div></div>
+        </div>
+      </div>
+      <div class="block"><div class="block-title aprem">🌤️ Après-midi — Fixé ✅</div>
+        <div class="info-line"><span class="info-icon">🏛️</span><span class="info-text"><strong>Basilique Notre-Dame</strong> <small>— chef-d'œuvre néo-gothique ⚠️ Réserver en ligne</small></span></div>
+        <div class="info-line"><span class="info-icon">🔦</span><span class="info-text"><strong>SOS Labyrinthe</strong> — Vieux-Port <small>— 2km de parcours, chasse aux trésors — Pass MTL 💙</small></span></div>
+        <div class="options-grid col2" style="margin-top:8px">
+          <div class="option-card opt2"><div class="option-num">🔵 OPTION BONUS</div><div class="option-items">🛍️ Marché créatif Locoshop Angus<br><span class="tag">180 créateurs locaux</span><span class="tag">25-26 avril</span></div></div>
+          <div class="option-card opt3"><div class="option-num">🔵 OPTION BONUS</div><div class="option-items">🌲 Parc La Fontaine<br><span class="tag">balade gratuite</span><span class="tag">Plateau</span></div></div>
+        </div>
+      </div>
+      <div class="block"><div class="block-title soir">🌇 Dernière grande soirée — Fixé ✅</div>
+        <div class="resto-list">
+          <div class="resto-item"><span class="resto-emoji">🥩</span><div><div class="resto-name">Maggie Oakes</div><div class="resto-desc">Viande &amp; grillades — restaurant chic, parfait pour la dernière grande soirée</div></div><span class="resto-tag tag-resto">Resto</span></div>
+          <div class="resto-item"><span class="resto-emoji">🌅</span><div><div class="resto-name">Rooftop William Gray</div><div class="resto-desc">Meilleure vue sur Vieux-Montréal ⚠️ Réserver à l'avance !</div></div><span class="resto-tag tag-roof">Rooftop</span></div>
+        </div>
+        <div class="note-box"><strong>✨ AURA :</strong> Spectacle multimédia à la Basilique Notre-Dame le soir — si dispo, c'est la soirée parfaite pour ça !</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 26 -->
+  <div class="day-card">
+    <div class="day-header" onclick="toggleDay('d26')"><div class="day-date">📅 Dimanche 26 Avril — Départ ✈️ 19h</div><span class="day-badge badge-depart">Départ 19h</span><span class="day-chevron open" id="chev-d26">▼</span></div>
+    <div class="day-body open" id="body-d26">
+      <div class="block"><div class="block-title info">Logistique</div>
+        <div class="info-line"><span class="info-icon">⏰</span><span class="info-text">Départ aéroport : 16h30 max</span></div>
+        <div class="info-line"><span class="info-icon">✈️</span><span class="info-text">Vol 19h00 — retour France</span></div>
+        <div class="info-line"><span class="info-icon">🚗</span><span class="info-text">Uber/taxi à réserver la veille</span></div>
+      </div>
+      <div class="block"><div class="block-title matin">☀️ Matin — Fixé ✅</div>
+        <div class="info-line"><span class="info-icon">🧖</span><span class="info-text"><strong>Bota Bota Spa-sur-l'eau</strong> <small>— détente finale avant le départ ✨</small></span></div>
+      </div>
+      <div class="block"><div class="block-title aprem">🌤️ Début d'après-midi</div>
+        <div class="info-line"><span class="info-icon">🛍️</span><span class="info-text"><strong>Rue Sainte-Catherine</strong> <small>— shopping de dernière minute, souvenirs</small></span></div>
+        <div class="options-grid col2" style="margin-top:8px">
+          <div class="option-card opt2"><div class="option-num">🔵 OPTION BONUS</div><div class="option-items">🛍️ Marché créatif Locoshop Angus<br><span class="tag">25-26 avril</span><span class="tag">souvenirs originaux</span></div></div>
+          <div class="option-card opt3"><div class="option-num">🔵 OPTION BONUS</div><div class="option-items">🛒 Marché Jean-Talon<br><span class="tag">sirop d'érable</span><span class="tag">produits à ramener</span></div></div>
+        </div>
+        <div class="note-box"><strong>⏰ Timing :</strong> Sois à l'hôtel pour <strong>15h30 max</strong> pour récupérer les bagages et filer à l'aéroport.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- SIDE PANEL OPTIONS -->
+<div class="planning-right" id="side-panel">
+  <div class="side-panel-header">
+    🔵 Activités Options
+    <div style="font-size:0.68rem;color:var(--muted);font-weight:400;letter-spacing:0;margin-top:2px;">Clique sur ✏️ dans le planning pour permuter</div>
+  </div>
+  <div class="side-panel-body" id="side-panel-body">
+
+    <div class="option-group">
+      <div class="option-group-title">🌧️ Parfait si il pleut</div>
+      <div id="opts-pluie"></div>
+    </div>
+
+    <div class="option-group">
+      <div class="option-group-title">🎭 Culture & Musées</div>
+      <div id="opts-culture"></div>
+    </div>
+
+    <div class="option-group">
+      <div class="option-group-title">🌿 Nature & Plein air</div>
+      <div id="opts-nature"></div>
+    </div>
+
+    <div class="option-group">
+      <div class="option-group-title">🛒 Marchés & Shopping</div>
+      <div id="opts-shopping"></div>
+    </div>
+
+    <div class="option-group">
+      <div class="option-group-title">⚽ Sport & Spectacles</div>
+      <div id="opts-sport"></div>
+    </div>
+
+    <div class="option-group">
+      <div class="option-group-title">🏛️ Patrimoine</div>
+      <div id="opts-patrimoine"></div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /planning-layout -->
+
+<!-- MODAL ÉCHANGE ACTIVITÉ -->
+<div class="modal-overlay hidden" id="activity-modal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ Changer cette activité</div>
+    <div class="modal-current" id="modal-current-text">—</div>
+    <div id="modal-rain-warning" style="display:none;background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.25);border-radius:8px;padding:8px 12px;font-size:0.78rem;color:var(--blue);margin-bottom:10px;">🌧️ Pluie détectée ce jour — les alternatives intérieures sont mises en avant</div>
+    <div class="modal-section-title" id="modal-rain-section" style="display:none;">☔ Activités intérieures recommandées</div>
+    <div id="modal-rain-alts"></div>
+    <div class="modal-section-title">🔄 Toutes les options disponibles</div>
+    <div id="modal-all-alts"></div>
+    <button class="modal-close" onclick="closeModal()">Annuler</button>
+  </div>
+</div>
+
+<!-- SAVE INDICATOR -->
+<div class="save-indicator" id="save-indicator">✓ Sauvegardé</div>
+
+<!-- PAGE 3 : GUIDE RESTOS & ACTIVITÉS -->
+<div class="page" id="page-guide">
+<div class="guide-header">
+  <h2>GUIDE <span>RESTOS & ACTIVITÉS</span> 🍽️</h2>
+  <div class="sub">Montréal — Incontournables & coups de cœur</div>
+</div>
+<div class="guide-main">
+
+  <!-- PASS MTL -->
+  <div class="guide-section">
+    <div class="guide-section-title pass">🎫 Passeport MTL — Vaut-il le coup ?</div>
+    <div class="pass-box">
+      <div class="pass-title">Passeport MTL Été 2026</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px">Valide du 1er avril au 31 octobre 2026 · 1 visite par attraction · Code QR sur téléphone</div>
+      <div class="pass-options">
+        <div class="pass-opt">
+          <div class="pass-opt-price">60$</div>
+          <div class="pass-opt-label">CAD (~44€)</div>
+          <div class="pass-opt-detail">3 attraits au choix</div>
+        </div>
+        <div class="pass-opt" style="border-color:var(--accent2)">
+          <div class="pass-opt-price" style="color:var(--green)">90$</div>
+          <div class="pass-opt-label">CAD (~66€)</div>
+          <div class="pass-opt-detail">5 attraits au choix ⭐ Recommandé</div>
+        </div>
+      </div>
+      <div class="pass-included">
+        <div class="pass-included-title">✅ Ce que tu veux faire — inclus dans le pass</div>
+        <div class="pass-item"><span class="pass-cat cat-pink">💗 Rose</span>Grande Roue de Montréal</div>
+        <div class="pass-item"><span class="pass-cat cat-pink">💗 Rose</span>OASIS immersion (réservation requise)</div>
+        <div class="pass-item"><span class="pass-cat cat-pink">💗 Rose</span>Pointe-à-Callière — Archéologie & Histoire</div>
+        <div class="pass-item"><span class="pass-cat cat-blue">💙 Bleu</span>Biosphère — Espace pour la vie</div>
+        <div class="pass-item"><span class="pass-cat cat-blue">💙 Bleu</span>Jardin botanique de Montréal</div>
+        <div class="pass-item"><span class="pass-cat cat-blue">💙 Bleu</span>SOS Labyrinthe (Vieux-Port)</div>
+      </div>
+      <div class="pass-verdict">
+        <strong>✅ Mon verdict : PRENDS LE PASS 5 ATTRAITS !</strong><br>
+        Avec la Grande Roue (~25$), OASIS (~30$), Biodôme (~25$) et 2 autres activités, tu rentabilises largement les 90$ CAD dès la 2e activité. Économie estimée : <strong>~35% soit ~40$ CAD</strong>. Commande sur <strong>mtl.org/passeport</strong> avant de partir !
+      </div>
+    </div>
+  </div>
+
+  <!-- RESTOS TYPIQUES MIDI -->
+  <div class="guide-section">
+    <div class="guide-section-title resto">🍽️ Restos typiques & rapides — Midi</div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🥩</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Schwartz's Deli</div>
+        <div class="guide-card-desc">LE smoked meat de Montréal depuis 1928. Viande marinée 10 jours, fumée toute la nuit. Queue dehors mais expérience incontournable. Boulevard Saint-Laurent.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-red">Incontournable</span><span class="gtag gtag-gold">Rapide</span><span class="gtag gtag-blue">Plateau</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🍟</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">La Banquise</div>
+        <div class="guide-card-desc">Numéro 1 de la poutine à Montréal. Plus de 30 poutines avec des noms loufoques — La Panoramix, La Boogalou, La Couvre-Feu... Ouvert 24h/24 !</div>
+        <div class="guide-card-tags"><span class="gtag gtag-red">Incontournable</span><span class="gtag gtag-gold">24h/24</span><span class="gtag gtag-blue">Plateau</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🫘</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">La Binerie Mont-Royal</div>
+        <div class="guide-card-desc">Institution depuis 1938. Cuisine québécoise de grand-mère : pâté chinois, tourtière, fèves au lard maison, ragoût de boulettes. Portions généreuses, prix doux.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">Québécois pur</span><span class="gtag gtag-gold">Économique</span><span class="gtag gtag-blue">Plateau</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🥯</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">St-Viateur Bagel</div>
+        <div class="guide-card-desc">Le bagel montréalais — plus petit, plus sucré, cuit au four à bois. À manger chaud en balade dans le Mile End. Parfait pour le matin ou un lunch rapide.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-red">Incontournable</span><span class="gtag gtag-gold">Ultra rapide</span><span class="gtag gtag-blue">Mile End</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🥯</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Fairmount Bagel</div>
+        <div class="guide-card-desc">Rival historique de St-Viateur depuis 1919 — les deux se valent, chacun a ses fans. Ouvert 24h/24, cuisson au four à bois visible. Mile End.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">Légendaire</span><span class="gtag gtag-gold">24h/24</span><span class="gtag gtag-blue">Mile End</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🌭</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Wilensky's Light Lunch</div>
+        <div class="guide-card-desc">Casse-croûte ouvert en 1932, quasi inchangé. Le sandwich "Special" légendaire à ~5$. Retour dans le temps total. Comptoir, tabourets, ambiance d'époque. Mile End.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-purple">Culte</span><span class="gtag gtag-gold">Très bon marché</span><span class="gtag gtag-blue">Mile End</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🍺</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Dieu du Ciel !</div>
+        <div class="guide-card-desc">La microbrasserie artisanale culte de Montréal. Bières locales créatives et plats du midi. Ambiance décontractée, terrasse en été. Plateau Mont-Royal.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Brasserie</span><span class="gtag gtag-green">Local</span><span class="gtag gtag-blue">Plateau</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🍔</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">La Belle Province</div>
+        <div class="guide-card-desc">La chaîne fast food québécoise par excellence. Hot-dogs, poutine, burgers — vraiment local et pas cher. Plusieurs adresses en ville.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-gold">Économique</span><span class="gtag gtag-green">Québécois</span><span class="gtag gtag-gold">Rapide</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVITÉS -->
+  <div class="guide-section">
+    <div class="guide-section-title activ">✅ Activités — Prévues</div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🪂</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Montréal Bungee — Saut + Tyrolienne</div>
+        <div class="guide-card-desc">Saut à l'élastique et tyrolienne. Ouvre le 18 avril. Réserver sur montrealbungee.com</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">25 avril matin</span><span class="gtag gtag-red">⚠️ Réserver maintenant</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🌀</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">OASIS Immersion</div>
+        <div class="guide-card-desc">Expérience multimédia immersive — projections géantes. Réservation requise. Pass MTL 💗</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">23 avril après-midi</span><span class="gtag gtag-gold">Pass MTL 💗</span><span class="gtag gtag-red">⚠️ Réserver</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🎡</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">La Grande Roue de Montréal</div>
+        <div class="guide-card-desc">60 mètres, vue 360° sur la ville et le fleuve. Vieux-Port. Pass MTL 💗</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">23 avril après-midi</span><span class="gtag gtag-gold">Pass MTL 💗</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🔦</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">SOS Labyrinthe — Vieux-Port</div>
+        <div class="guide-card-desc">Plus grand labyrinthe intérieur au monde, 2 km, chasse aux trésors. Pass MTL 💙</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">25 avril après-midi</span><span class="gtag gtag-gold">Pass MTL 💙</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🏛️</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Basilique Notre-Dame + AURA</div>
+        <div class="guide-card-desc">Chef-d'œuvre néo-gothique + spectacle AURA le soir. Réserver en ligne.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">25 avril</span><span class="gtag gtag-purple">AURA le soir ✨</span><span class="gtag gtag-red">⚠️ Réserver</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🧖</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Bota Bota Spa-sur-l'eau</div>
+        <div class="guide-card-desc">Spa sur un bateau dans le Vieux-Port. Bains nordiques, sauna, hammam, vue sur le fleuve.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">26 avril matin</span><span class="gtag gtag-blue">Vieux-Port</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🛒</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Marché Atwater</div>
+        <div class="guide-card-desc">Marché Art déco près du canal de Lachine. Fromages québécois, spécialités locales.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">24 avril matin</span><span class="gtag gtag-blue">Canal Lachine</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">📍</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Griffintown + Canal Lachine + RÉSO</div>
+        <div class="guide-card-desc">Griffintown : street art. Canal Lachine : balade. RÉSO : tunnels souterrains + shopping.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">24 avril après-midi</span><span class="gtag gtag-gold">Shopping RÉSO</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-section">
+    <div class="guide-section-title" style="color:var(--blue)">🔵 Activités — Options</div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🌸</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Biodôme + Jardin botanique</div>
+        <div class="guide-card-desc">5 écosystèmes des Amériques + un des plus grands jardins botaniques au monde. Côte à côte dans le secteur olympique. Pass MTL 💙</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Option 24 avril matin</span><span class="gtag gtag-gold">Pass MTL 💙</span><span class="gtag gtag-purple">Rentabilise pass 5 attraits</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🏟️</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Stade olympique</div>
+        <div class="guide-card-desc">Icône des JO 1976 — 50e anniversaire en 2026 ! Activités spéciales. Tour de Montréal avec vue imprenable.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Option 24 avril</span><span class="gtag gtag-red">50e anniversaire JO !</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">⛪</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Oratoire Saint-Joseph</div>
+        <div class="guide-card-desc">Dôme de 97m — 2e au monde. Vue panoramique depuis le grand escalier. Gratuit extérieur.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Option 25 avril matin</span><span class="gtag gtag-green">Gratuit extérieur</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🛒</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Marché Jean-Talon</div>
+        <div class="guide-card-desc">Plus grand marché public de Montréal. Sirop d'érable, produits du terroir. Petite Italie.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Option 25 ou 26 avril</span><span class="gtag gtag-gold">Sirop d'érable à ramener</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🛍️</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Marché créatif Locoshop Angus</div>
+        <div class="guide-card-desc">180 créateurs locaux — bijoux, céramiques, objets déco. Souvenirs originaux. 25-26 avril uniquement.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Option 25 ou 26 avril</span><span class="gtag gtag-red">25-26 avril seulement</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🌲</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Parc La Fontaine</div>
+        <div class="guide-card-desc">Oasis arborée du Plateau. Décompresser entre deux sorties. Gratuit.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Option 25 après-midi</span><span class="gtag gtag-green">Gratuit</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🎪</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Spectacle TOHU — Ten Thousand Hours</div>
+        <div class="guide-card-desc">8 acrobates de classe mondiale, percussions live. 23-26 avril 2026. 👉 tohu.ca</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Option soirée 23-26 avril</span><span class="gtag gtag-purple">Arts du cirque</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🏒</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Match de hockey — Canadiens de Montréal</div>
+        <div class="guide-card-desc">Centre Bell — ambiance électrique, passion québécoise. Fin de saison avril. 👉 nhl.com/canadiens</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Option soirée</span><span class="gtag gtag-red">Expérience unique</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">⚽</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Match de foot — CF Montréal (MLS)</div>
+        <div class="guide-card-desc">Stade Saputo — saison MLS bat son plein en avril. Ambiance festive, billet accessible. 👉 cfmontreal.com</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Option soirée / après-midi</span><span class="gtag gtag-green">Accessible</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🚌</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Visite guidée en bus — Hop-on Hop-off</div>
+        <div class="guide-card-desc">Tour panoramique tous quartiers en une journée. Départ Vieux-Port. Parfait un jour de pluie.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-blue">Option any day</span><span class="gtag gtag-green">Parfait jour de pluie</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARCS -->
+  <div class="guide-section">
+    <div class="guide-section-title parcs">🌲 Parcs & Nature — Balades gratuites</div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">⛰️</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Parc du Mont-Royal</div>
+        <div class="guide-card-desc">Le poumon vert de Montréal, conçu par Frederick Law Olmsted (Central Park de NY). Chalet du Mont-Royal, belvédère Kondiaronk — vue imprenable sur la ville. Croix illuminée de 31m au sommet.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-red">Incontournable</span><span class="gtag gtag-green">Gratuit</span><span class="gtag gtag-gold">Sunset 🔥</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🌳</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Parc La Fontaine</div>
+        <div class="guide-card-desc">Oasis arborée du Plateau. Idéal pour décompresser entre deux sorties. Proche des restaurants de l'avenue du Mont-Royal et de la rue Saint-Denis.</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">Gratuit</span><span class="gtag gtag-blue">Plateau</span><span class="gtag gtag-gold">Pique-nique</span></div>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card-icon">🌿</div>
+      <div class="guide-card-body">
+        <div class="guide-card-name">Parc Maisonneuve</div>
+        <div class="guide-card-desc">63 hectares adjacent au Jardin botanique. En avril : premières floraisons, pistes cyclables, espace de détente. Moutons en pâturage libre à Biquette Écopâturage !</div>
+        <div class="guide-card-tags"><span class="gtag gtag-green">Gratuit</span><span class="gtag gtag-blue">Parc olympique</span><span class="gtag gtag-purple">Original</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+  const sections=['vestes','tshirts','hauts','pyjama','bas','maillots','sous','chaussures','accessoires','toilette','pharmacie','elec','cabine','docs','identite','todo','charge'];
+  function toggleSection(id){const i=document.getElementById('items-'+id),c=document.getElementById('chev-'+id);i.classList.toggle('open');c.classList.toggle('open');}
+  function toggle(el){el.classList.toggle('checked');updateAll();}
+  function updateAll(){
+    const all=document.querySelectorAll('#page-valise .item'),done=document.querySelectorAll('#page-valise .item.checked');
+    const pct=Math.round((done.length/all.length)*100);
+    document.getElementById('progressFill').style.width=pct+'%';
+    document.getElementById('progressText').textContent=done.length+' article'+(done.length>1?'s':'')+' coché'+(done.length>1?'s':'');
+    document.getElementById('progressPct').textContent=pct+'%';
+    sections.forEach(id=>{
+      const si=document.querySelectorAll('#items-'+id+' .item'),sc=document.querySelectorAll('#items-'+id+' .item.checked'),el=document.getElementById('count-'+id);
+      if(el){el.textContent=sc.length+'/'+si.length;el.classList.toggle('done',sc.length===si.length&&si.length>0);}
+    });
+  }
+  function resetAll(){document.querySelectorAll('#page-valise .item.checked').forEach(el=>el.classList.remove('checked'));updateAll();}
+  function toggleDay(id){const b=document.getElementById('body-'+id),c=document.getElementById('chev-'+id);b.classList.toggle('open');c.classList.toggle('open');}
+  function showPage(page){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+page).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('nav-'+page).classList.add('active');
+    if(page==='map') setTimeout(initMap,100);
+    if(page==='planning' && !document.getElementById('weather-content').offsetHeight) loadWeather();
+    if(page==='tools' && !window._eurCadRate) loadRate();
+  }
+  updateAll();
+
+  // ===== MÉTÉO MONTRÉAL (Open-Meteo — gratuit, sans clé) =====
+  // ===== MÉTÉO MULTI-VILLES =====
+  const cities = {
+    montreal:   { lat: 45.5017, lon: -73.5673, name: 'Montréal', link: 'https://www.meteomedia.com/ca/meteo/montreal' },
+    quebec:     { lat: 46.8139, lon: -71.2080, name: 'Québec City', link: 'https://www.meteomedia.com/ca/meteo/quebec' },
+    sherbrooke: { lat: 45.4042, lon: -71.8929, name: 'Sherbrooke', link: 'https://www.meteomedia.com/ca/meteo/sherbrooke' }
+  };
+  let currentCity = 'montreal';
+  let weatherLoaded = {};
+
+  const wEmoji = c => c===0?'☀️':c<=2?'⛅':c<=3?'☁️':c<=49?'🌫️':c<=59?'🌦️':c<=69?'🌧️':c<=79?'❄️':c<=82?'🌧️':c<=95?'⛈️':'🌩️';
+  const wDesc = c => c===0?'Ensoleillé':c<=2?'Partiellement nuageux':c<=3?'Nuageux':c<=49?'Brouillard':c<=59?'Bruine':c<=69?'Pluie':c<=79?'Neige':c<=82?'Averses':c<=95?'Orage':'Tempête';
+  const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+  async function loadWeather(cityKey) {
+    cityKey = cityKey || currentCity;
+    if (weatherLoaded[cityKey]) return;
+    const city = cities[cityKey];
+    document.getElementById('weather-loading').style.display = 'block';
+    document.getElementById('weather-content').style.display = 'none';
+    document.getElementById('weather-error').style.display = 'none';
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation_probability,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FToronto&forecast_days=8`;
+      const res = await fetch(url);
+      const d = await res.json();
+      const c = d.current;
+      weatherLoaded[cityKey] = { current: c, daily: d.daily };
+      renderWeather(cityKey);
+    } catch(e) {
+      document.getElementById('weather-loading').style.display = 'none';
+      document.getElementById('weather-error').style.display = 'block';
+    }
+  }
+
+  function renderWeather(cityKey) {
+    const data = weatherLoaded[cityKey];
+    if (!data) return;
+    const c = data.current, daily = data.daily, city = cities[cityKey];
+    document.getElementById('w-icon').textContent = wEmoji(c.weather_code);
+    document.getElementById('w-desc').textContent = wDesc(c.weather_code);
+    document.getElementById('w-temp').textContent = Math.round(c.temperature_2m) + '°C';
+    document.getElementById('w-feels').textContent = `Ressenti : ${Math.round(c.apparent_temperature)}°C`;
+    document.getElementById('w-wind').textContent = `💨 Vent : ${Math.round(c.wind_speed_10m)} km/h`;
+    document.getElementById('w-humidity').textContent = `💧 Humidité : ${c.relative_humidity_2m}%`;
+    document.getElementById('w-hilo').innerHTML = `↑ ${Math.round(daily.temperature_2m_max[0])}° / ↓ ${Math.round(daily.temperature_2m_min[0])}°`;
+    document.getElementById('w-rain').textContent = c.precipitation_probability > 0 ? `🌧️ Pluie : ${c.precipitation_probability}%` : '✅ Pas de pluie prévue';
+    document.getElementById('w-city-name').textContent = city.name;
+    const now = new Date();
+    document.getElementById('w-updated').textContent = `Mis à jour ${now.getHours()}h${String(now.getMinutes()).padStart(2,'0')}`;
+    document.getElementById('w-link').href = city.link;
+
+    const forecastEl = document.getElementById('w-forecast');
+    forecastEl.innerHTML = '';
+    for (let i = 1; i <= 7; i++) {
+      if (!daily.time[i]) continue;
+      const date = new Date(daily.time[i] + 'T12:00:00');
+      const rain = daily.precipitation_probability_max[i];
+      const rainColor = rain > 60 ? 'var(--accent)' : rain > 30 ? 'var(--accent2)' : 'var(--blue)';
+      const card = document.createElement('div');
+      card.style.cssText = `background:var(--bg);border:1px solid ${rain > 60 ? 'rgba(232,70,42,0.3)' : 'var(--border)'};border-radius:8px;padding:8px 10px;text-align:center;flex-shrink:0;min-width:68px;`;
+      card.innerHTML = `<div style="font-size:0.67rem;color:var(--muted);font-weight:600;text-transform:uppercase">${days[date.getDay()]}</div><div style="font-size:1.4rem;margin:4px 0">${wEmoji(daily.weather_code[i])}</div><div style="font-size:0.82rem;color:var(--accent2);font-weight:600">${Math.round(daily.temperature_2m_max[i])}°</div><div style="font-size:0.72rem;color:var(--muted)">${Math.round(daily.temperature_2m_min[i])}°</div>${rain > 20 ? `<div style="font-size:0.65rem;color:${rainColor};margin-top:3px">💧${rain}%</div>` : ''}`;
+      forecastEl.appendChild(card);
+    }
+    document.getElementById('weather-loading').style.display = 'none';
+    document.getElementById('weather-content').style.display = 'block';
+  }
+
+  function switchCity(cityKey) {
+    currentCity = cityKey;
+    document.querySelectorAll('[id^="city-"]').forEach(b => {
+      b.style.borderColor = 'var(--border)';
+      b.style.background = 'transparent';
+      b.style.color = 'var(--muted)';
+    });
+    const btn = document.getElementById('city-' + cityKey);
+    btn.style.borderColor = 'var(--accent2)';
+    btn.style.background = 'rgba(245,166,35,0.15)';
+    btn.style.color = 'var(--accent2)';
+    if (weatherLoaded[cityKey]) renderWeather(cityKey);
+    else loadWeather(cityKey);
+  }
+
+  // Charge la météo seulement sur la page planning
+  document.getElementById('nav-planning').addEventListener('click', () => {
+    if (!weatherLoaded[currentCity]) loadWeather(currentCity);
+  });
+  // Charge au démarrage si on est sur planning
+  if (document.getElementById('page-planning').classList.contains('active')) { loadWeather('montreal'); loadDailyWeather(); }
+
+  // ===== MÉTÉO PAR JOUR dans le planning =====
+  async function loadDailyWeather() {
+    try {
+      // Montréal (16-26 avril)
+      const urlMtl = 'https://api.open-meteo.com/v1/forecast?latitude=45.5017&longitude=-73.5673&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FToronto&start_date=2026-04-16&end_date=2026-04-26';
+      // Québec City (19-20 avril)
+      const urlQc = 'https://api.open-meteo.com/v1/forecast?latitude=46.8139&longitude=-71.2080&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FToronto&start_date=2026-04-19&end_date=2026-04-20';
+      // Sherbrooke (20-22 avril)
+      const urlSh = 'https://api.open-meteo.com/v1/forecast?latitude=45.4042&longitude=-71.8929&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FToronto&start_date=2026-04-20&end_date=2026-04-22';
+
+      const [dMtl, dQc, dSh] = await Promise.all([fetch(urlMtl).then(r=>r.json()), fetch(urlQc).then(r=>r.json()), fetch(urlSh).then(r=>r.json())]);
+
+      const buildMap = (d) => {
+        const m = {};
+        d.daily.time.forEach((t,i) => { m[t] = { e: wEmoji(d.daily.weather_code[i]), max: Math.round(d.daily.temperature_2m_max[i]), min: Math.round(d.daily.temperature_2m_min[i]), rain: d.daily.precipitation_probability_max[i] }; });
+        return m;
+      };
+
+      const mtl = buildMap(dMtl), qc = buildMap(dQc), sh = buildMap(dSh);
+
+      const dayMap = {
+        d16: mtl['2026-04-16'], d17: mtl['2026-04-17'], d18: mtl['2026-04-18'],
+        d19: qc['2026-04-19'], d20: sh['2026-04-20'], d21: sh['2026-04-21'],
+        d22: mtl['2026-04-22'], d23: mtl['2026-04-23'], d24: mtl['2026-04-24'],
+        d25: mtl['2026-04-25'], d26: mtl['2026-04-26']
+      };
+
+      Object.entries(dayMap).forEach(([id, w]) => {
+        if (!w) return;
+        // Mise à jour jours pluvieux
+        if (w.rain > 50) currentRainDays[id] = true;
+        const hdr = document.querySelector(`#chev-${id}`)?.closest('.day-header');
+        if (!hdr) return;
+        const existing = hdr.querySelector('.day-weather');
+        if (existing) existing.remove();
+        const rainColor = w.rain > 60 ? 'var(--accent)' : w.rain > 30 ? 'var(--accent2)' : 'var(--blue)';
+        const bg = w.rain > 60 ? 'rgba(232,70,42,0.1)' : w.rain > 30 ? 'rgba(245,166,35,0.1)' : 'rgba(74,158,255,0.1)';
+        const el = document.createElement('div');
+        el.className = 'day-weather';
+        el.style.cssText = `background:${bg};border-color:${rainColor};color:${rainColor};`;
+        el.innerHTML = `${w.e} ${w.max}°/${w.min}°${w.rain > 20 ? ` 💧${w.rain}%` : ''}`;
+        hdr.insertBefore(el, hdr.querySelector('.day-chevron'));
+      });
+    } catch(e) { console.log('Météo par jour indisponible'); }
+  }
+  loadDailyWeather();
+
+  // ===== CARTE LEAFLET =====
+  let mapInitialized = false;
+  function initMap() {
+    if (mapInitialized) return;
+    mapInitialized = true;
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = () => {
+      const map = L.map('map-container', { zoomControl: true }).setView([45.508, -73.554], 13);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap © CARTO', maxZoom: 19
+      }).addTo(map);
+
+      const mkIcon = (color, emoji) => L.divIcon({
+        html: `<div style="background:${color};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.2)">${emoji}</div>`,
+        className: '', iconSize: [32,32], iconAnchor: [16,16], popupAnchor: [0,-18]
+      });
+
+      const places = [
+        // Hôtels #e8462a
+        [45.4964, -73.5699, 'red', '🏨', 'Holiday Inn Centre-Ville Ouest', '22-24 avril · Sherbrooke St W'],
+        [45.5038, -73.5660, 'red', '🏨', 'Hotel Monville Montréal', '24-26 avril · De Bleury'],
+        // Airbnb plateau
+        [45.5220, -73.5810, 'red', '🏠', 'Airbnb — Plateau Mont-Royal', '16-22 avril'],
+
+        // Restos #f5a623
+        [45.5074, -73.5540, 'orange', '🍕', 'Bevo Bar + Pizzeria', 'Vieux-Montréal · 22 avril soir'],
+        [45.5221, -73.5832, 'orange', '🍔', "L'Gros Luxe", 'Plateau · Option'],
+        [45.5087, -73.5727, 'orange', '🥩', 'Wolf & Workman', 'Centre-ville · 23 avril soir'],
+        [45.5078, -73.5632, 'orange', '🌮', 'Elena', 'Little Italy · 24 avril soir'],
+        [45.5009, -73.5693, 'orange', '🥩', 'Maggie Oakes', 'Vieux-Port · 25 avril soir'],
+        [45.5061, -73.5557, 'orange', '🍕', 'Nora Gray', 'Griffintown · Option'],
+
+        // Bars & Rooftops #a855f7
+        [45.5087, -73.5527, 'purple', '🌅', 'Terrasse William Gray', 'Vieux-Port · 22 & 25 avril'],
+        [45.5110, -73.5672, 'purple', '🍹', 'Perché', 'Centre-ville · Option'],
+        [45.5098, -73.5618, 'purple', '🎵', 'Santos Tapas Bar', 'Vieux-Montréal · 24 avril'],
+        [45.5110, -73.5668, 'purple', '🕺', 'Clandestino', 'Centre-ville · 23 avril soir'],
+
+        // Activités #4a9eff
+        [45.5017, -73.5531, 'blue', '🎡', 'Grande Roue de Montréal', 'Vieux-Port · 23 avril'],
+        [45.5085, -73.5615, 'blue', '🌀', 'OASIS Immersion', 'Centre-ville · 23 avril'],
+        [45.5007, -73.5523, 'blue', '🔦', 'SOS Labyrinthe', 'Vieux-Port · 25 avril'],
+        [45.5040, -73.5568, 'blue', '🏛️', 'Basilique Notre-Dame', 'Vieux-Montréal · 25 avril'],
+        [45.5012, -73.5483, 'blue', '🧖', 'Bota Bota Spa-sur-l\'eau', 'Vieux-Port · 26 avril'],
+        [45.5341, -73.6202, 'blue', '🪂', 'Montréal Bungee', '25 avril matin'],
+        [45.5237, -73.5888, 'blue', '⛪', 'Oratoire Saint-Joseph', 'Mont-Royal · Option'],
+        [45.5590, -73.6234, 'blue', '🏟️', 'Stade olympique + Biodôme', 'Option 24 avril'],
+
+        // Marchés & Parcs #4caf7d
+        [45.4738, -73.5761, 'green', '🛒', 'Marché Atwater', '24 avril matin'],
+        [45.5398, -73.6132, 'green', '🛒', 'Marché Jean-Talon', 'Option'],
+        [45.5085, -73.5748, 'green', '🌲', 'Canal de Lachine', '24 avril'],
+        [45.5169, -73.5773, 'green', '📍', 'Griffintown', '24 avril'],
+        [45.5297, -73.5875, 'green', '🌳', 'Parc La Fontaine', 'Option'],
+        [45.5088, -73.5878, 'green', '🛍️', 'Marché créatif Locoshop Angus', '25-26 avril · Option'],
+        [45.5248, -73.5886, 'green', '🥯', 'St-Viateur Bagel', 'Mile End'],
+        [45.5267, -73.5865, 'green', '📍', 'Mile End', '23 avril matin'],
+        [45.5019, -73.5674, 'green', '🚶', 'Vieux-Port + Rue Saint-Paul', '22 avril soir'],
+      ];
+
+      const colorMap = { red:'#e8462a', orange:'#f5a623', blue:'#4a9eff', purple:'#a855f7', green:'#4caf7d' };
+
+      places.forEach(([lat,lng,color,emoji,name,desc]) => {
+        L.marker([lat,lng], { icon: mkIcon(colorMap[color], emoji) })
+          .addTo(map)
+          .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:150px"><strong style="font-size:0.9rem">${emoji} ${name}</strong><br><span style="font-size:0.78rem;color:#888">${desc}</span></div>`);
+      });
+    };
+    document.head.appendChild(script);
+  }
+
+  document.getElementById('nav-map').addEventListener('click', () => {
+    setTimeout(initMap, 100);
+  });
+
+  // ===== CONVERTISSEUR EUR/CAD =====
+  async function loadRate() {
+    try {
+      const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=CAD');
+      const d = await res.json();
+      const rate = d.rates.CAD;
+      document.getElementById('rate-display').textContent = `1 € = ${rate.toFixed(4)} CAD`;
+      document.getElementById('rate-date').textContent = `Taux du ${d.date}`;
+      window._eurCadRate = rate;
+      convertCurrency();
+    } catch(e) {
+      window._eurCadRate = 1.48;
+      document.getElementById('rate-display').textContent = '1 € ≈ 1.48 CAD (estimé)';
+      convertCurrency();
+    }
+  }
+
+  function convertCurrency() {
+    const rate = window._eurCadRate || 1.48;
+    const eur = parseFloat(document.getElementById('conv-eur').value) || 0;
+    const cad = parseFloat(document.getElementById('conv-cad').value) || 0;
+    if(document.activeElement.id === 'conv-eur') {
+      document.getElementById('conv-cad').value = (eur * rate).toFixed(2);
+    } else {
+      document.getElementById('conv-eur').value = (cad / rate).toFixed(2);
+    }
+  }
+
+  document.getElementById('nav-tools').addEventListener('click', () => {
+    if (!window._eurCadRate) loadRate();
+  });
+
+  // ===== CALCULATEUR POURBOIRE =====
+  function calcTip() {
+    const bill = parseFloat(document.getElementById('tip-bill').value) || 0;
+    const pct = parseFloat(document.getElementById('tip-pct').value) || 15;
+    const tip = bill * pct / 100;
+    const total = bill + tip;
+    document.getElementById('tip-result').innerHTML = `Pourboire : <strong style="color:var(--accent2)">${tip.toFixed(2)} CAD</strong><br>Total : <strong style="color:var(--green)">${total.toFixed(2)} CAD</strong>`;
+  }
+
+  // ===== TRACKER DÉPENSES =====
+  let depenses = JSON.parse(localStorage.getItem('mtl-depenses') || '[]');
+  let budget = parseFloat(localStorage.getItem('mtl-budget') || '1500');
+
+  function renderDepenses() {
+    const total = depenses.reduce((s,d) => s+d.montant, 0);
+    const restant = budget - total;
+    document.getElementById('dep-total').textContent = total.toFixed(2) + ' CAD';
+    document.getElementById('dep-restant').textContent = restant.toFixed(2) + ' CAD';
+    document.getElementById('dep-restant').style.color = restant < 0 ? 'var(--accent)' : 'var(--green)';
+    const pct = Math.min((total/budget)*100, 100);
+    document.getElementById('dep-bar').style.width = pct + '%';
+    document.getElementById('dep-bar').style.background = restant < 0 ? 'var(--accent)' : 'linear-gradient(90deg,var(--accent2),var(--green))';
+    const list = document.getElementById('dep-list');
+    list.innerHTML = '';
+    [...depenses].reverse().forEach((d, ri) => {
+      const i = depenses.length - 1 - ri;
+      const el = document.createElement('div');
+      el.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.83rem;';
+      el.innerHTML = `<span style="flex:1;color:var(--text)">${d.label}</span><span style="color:var(--accent2);font-weight:600">${d.montant.toFixed(2)} CAD</span><span style="font-size:0.7rem;color:var(--muted)">${d.date}</span><button onclick="suppDep(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;padding:0 4px;">✕</button>`;
+      list.appendChild(el);
+    });
+  }
+
+  function ajouterDep() {
+    const label = document.getElementById('dep-label').value.trim();
+    const montant = parseFloat(document.getElementById('dep-montant').value);
+    if (!label || !montant) return;
+    const now = new Date();
+    depenses.push({ label, montant, date: `${now.getDate()}/${now.getMonth()+1}` });
+    localStorage.setItem('mtl-depenses', JSON.stringify(depenses));
+    document.getElementById('dep-label').value = '';
+    document.getElementById('dep-montant').value = '';
+    renderDepenses();
+  }
+
+  function suppDep(i) {
+    depenses.splice(i, 1);
+    localStorage.setItem('mtl-depenses', JSON.stringify(depenses));
+    renderDepenses();
+  }
+
+  function saveBudget() {
+    budget = parseFloat(document.getElementById('dep-budget').value) || 1500;
+    localStorage.setItem('mtl-budget', budget);
+    renderDepenses();
+  }
+
+  // ===== COUNTDOWN =====
+  function updateCountdown() {
+    const depart = new Date('2026-04-16T07:00:00');
+    const now = new Date();
+    const diff = depart - now;
+    if (diff <= 0) {
+      document.getElementById('countdown').innerHTML = '🛫 <strong style="color:var(--green)">C\'est parti pour Montréal !</strong>';
+      return;
+    }
+    const j = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cd-j').textContent = j;
+    document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+    document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+    document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+  }
+  setInterval(updateCountdown, 1000);
+  updateCountdown();
+
+  // ===== SYSTÈME ACTIVITÉS INTERACTIVES =====
+
+  // Base de données de toutes les activités options
+  const ALL_OPTIONS = [
+    // PLUIE (intérieur)
+    { id:'oasis',      icon:'🌀', name:'OASIS Immersion',         desc:'100% intérieur · Pass MTL 💗',           cats:['pluie','culture'],   rainy:true  },
+    { id:'sos',        icon:'🔦', name:'SOS Labyrinthe',          desc:'Vieux-Port · intérieur · Pass MTL 💙',   cats:['pluie','culture'],   rainy:true  },
+    { id:'basilique',  icon:'🏛️', name:'Basilique Notre-Dame',    desc:'Architecture + AURA le soir',            cats:['pluie','patrimoine'],rainy:true  },
+    { id:'biodome',    icon:'🌿', name:'Biodôme',                 desc:'5 écosystèmes · Pass MTL 💙',            cats:['pluie','nature'],    rainy:true  },
+    { id:'reso',       icon:'🚇', name:'RÉSO souterrain',         desc:'33km de tunnels + shopping',              cats:['pluie','shopping'],  rainy:true  },
+    { id:'tohu',       icon:'🎪', name:'Spectacle TOHU',          desc:'Acrobates · 23-26 avril · tohu.ca',      cats:['pluie','culture'],   rainy:true  },
+    { id:'hockey',     icon:'🏒', name:'Match Canadiens',         desc:'Centre Bell · fin de saison avril',       cats:['pluie','sport'],     rainy:true  },
+    // NATURE / PLEIN AIR
+    { id:'montroyal',  icon:'⛰️', name:'Mont-Royal sunset',       desc:'Vue imprenable · belvédère Kondiaronk',  cats:['nature'],            rainy:false },
+    { id:'lafontaine', icon:'🌲', name:'Parc La Fontaine',        desc:'Plateau · balade gratuite',               cats:['nature'],            rainy:false },
+    { id:'canal',      icon:'🌊', name:'Canal de Lachine',        desc:'Vélo ou balade bord de canal',            cats:['nature'],            rainy:false },
+    { id:'bota',       icon:'🧖', name:'Bota Bota Spa',           desc:'Bains nordiques · Vieux-Port',            cats:['nature','pluie'],    rainy:true  },
+    { id:'bungee',     icon:'🪂', name:'Bungee Montréal',         desc:'⚠️ Réserver · ouvre 18 avril',            cats:['nature','sport'],    rainy:false },
+    { id:'jardin',     icon:'🌸', name:'Jardin botanique',        desc:'Floraisons printemps · Pass MTL 💙',     cats:['nature','pluie'],    rainy:true  },
+    // CULTURE
+    { id:'granderoue', icon:'🎡', name:'Grande Roue',             desc:'60m · vue 360° · Pass MTL 💗',           cats:['culture'],           rainy:false },
+    { id:'oratoire',   icon:'⛪', name:'Oratoire Saint-Joseph',  desc:'Dôme 97m · gratuit extérieur',            cats:['culture','patrimoine'],rainy:false},
+    { id:'stade',      icon:'🏟️', name:'Stade olympique',        desc:'50e JO 2026 · activités spéciales',       cats:['culture','patrimoine'],rainy:true },
+    // SHOPPING / MARCHÉS
+    { id:'jt',         icon:'🛒', name:'Marché Jean-Talon',       desc:'Petite Italie · sirop d\'érable',         cats:['shopping'],          rainy:false },
+    { id:'atwater',    icon:'🛒', name:'Marché Atwater',          desc:'Canal Lachine · Art déco',                cats:['shopping'],          rainy:false },
+    { id:'locoshop',   icon:'🛍️', name:'Marché Locoshop Angus',  desc:'180 créateurs locaux · 25-26 avril',      cats:['shopping'],          rainy:false },
+    { id:'milend',     icon:'📍', name:'Mile End & Bagels',       desc:'St-Viateur · street art · brunch',        cats:['shopping','nature'],  rainy:false },
+    // SPORT / SPECTACLES
+    { id:'foot',       icon:'⚽', name:'Match CF Montréal',       desc:'Stade Saputo · MLS · cfmontreal.com',     cats:['sport'],             rainy:false },
+    { id:'hopoff',     icon:'🚌', name:'Bus Hop-on Hop-off',      desc:'Tour panoramique · parfait pluie',        cats:['sport','pluie'],     rainy:true  },
+    // PATRIMOINE
+    { id:'vieuxport',  icon:'🚶', name:'Vieux-Port + Rue St-Paul',desc:'Balade historique · photos',              cats:['patrimoine'],        rainy:false },
+    { id:'plateau',    icon:'🏠', name:'Plateau Mont-Royal',      desc:'Maisons colorées · escaliers torsadés',   cats:['patrimoine','nature'],rainy:false },
+    { id:'griffintown',icon:'🎨', name:'Griffintown',             desc:'Street art · quartier en essor',          cats:['patrimoine'],        rainy:false },
+  ];
+
+  // État des activités par jour (sauvegardé)
+  let planningState = JSON.parse(localStorage.getItem('mtl-planning') || '{}');
+  let currentRainDays = {}; // jours avec pluie détectée
+
+  const PLANNED_ACTIVITIES = {
+    d16: [
+      {id:'vieuxport',   icon:'🚶', name:'Vieux-Port + Rue Saint-Paul'},
+      {id:'montroyal',   icon:'🌄', name:'Mont-Royal au sunset'},
+      {id:'quartchin',   icon:'📍', name:'Quartier chinois'},
+    ],
+    d17: [
+      {id:'lacstsauv',   icon:'🌊', name:'Balade autour du lac — Saint-Sauveur'},
+      {id:'chill17',     icon:'😎', name:'Chill & détente'},
+      {id:'amis17',      icon:'🍻', name:'Soirée avec amis'},
+    ],
+    d18: [
+      {id:'omega',       icon:'🦌', name:'Safari Parc Oméga'},
+      {id:'montebello',  icon:'🏰', name:'Arrêt Montebello'},
+      {id:'rando18',     icon:'🌲', name:'Nature & randonnée'},
+    ],
+    d19: [
+      {id:'frontenac',   icon:'🏰', name:'Château Frontenac'},
+      {id:'dufferin',    icon:'🌉', name:'Terrasse Dufferin'},
+      {id:'champlain',   icon:'🛍️', name:'Quartier Petit Champlain'},
+    ],
+    d20: [
+      {id:'vincent',     icon:'🍽️', name:'Repas avec Vincent'},
+      {id:'routeqcsh',   icon:'🚗', name:'Route Québec → Sherbrooke'},
+      {id:'chill20',     icon:'😎', name:'Chill à l\'arrivée'},
+    ],
+    d21: [
+      {id:'lacnations',  icon:'🌊', name:'Lac des Nations — balade'},
+      {id:'spa21',       icon:'🧖', name:'Spa nordique'},
+      {id:'detente21',   icon:'😴', name:'Détente totale'},
+    ],
+    d22: [
+      {id:'vieuxport2',  icon:'🚶', name:'Vieux-Port + Rue Saint-Paul'},
+    ],
+    d23: [
+      {id:'milend',      icon:'📍', name:'Mile End + Bagels St-Viateur'},
+      {id:'oasis',       icon:'🌀', name:'OASIS Immersion'},
+      {id:'granderoue',  icon:'🎡', name:'Grande Roue de Montréal'},
+    ],
+    d24: [
+      {id:'atwater',     icon:'🛒', name:'Marché Atwater'},
+      {id:'canal',       icon:'🌊', name:'Canal de Lachine'},
+      {id:'griffintown', icon:'🎨', name:'Griffintown'},
+      {id:'reso',        icon:'🚇', name:'RÉSO souterrain + Shopping'},
+    ],
+    d25: [
+      {id:'bungee',      icon:'🪂', name:'Bungee Montréal'},
+      {id:'basilique',   icon:'🏛️', name:'Basilique Notre-Dame + AURA'},
+      {id:'sos',         icon:'🔦', name:'SOS Labyrinthe'},
+    ],
+    d26: [
+      {id:'bota',        icon:'🧖', name:'Bota Bota Spa-sur-l\'eau'},
+      {id:'stcath',      icon:'🛍️', name:'Rue Sainte-Catherine'},
+    ],
+  };
+
+  // IDs des activités déjà planifiées (pour les exclure des options)
+  function getPlannedIds() {
+    const ids = new Set();
+    Object.values(PLANNED_ACTIVITIES).forEach(acts => acts.forEach(a => ids.add(a.id)));
+    // Appliquer l'état sauvegardé (échanges effectués)
+    Object.entries(planningState).forEach(([dayId, acts]) => {
+      acts.forEach(a => { if (a.id) ids.add(a.id); });
+    });
+    return ids;
+  }
+
+  // Rendu du panneau latéral
+  function renderSidePanel() {
+    const plannedIds = getPlannedIds();
+    const cats = {
+      pluie:      { el: document.getElementById('opts-pluie'),      items: [] },
+      culture:    { el: document.getElementById('opts-culture'),     items: [] },
+      nature:     { el: document.getElementById('opts-nature'),      items: [] },
+      shopping:   { el: document.getElementById('opts-shopping'),    items: [] },
+      sport:      { el: document.getElementById('opts-sport'),       items: [] },
+      patrimoine: { el: document.getElementById('opts-patrimoine'),  items: [] },
+    };
+
+    ALL_OPTIONS.forEach(opt => {
+      if (plannedIds.has(opt.id)) return; // déjà planifié
+      opt.cats.forEach(cat => {
+        if (cats[cat]) cats[cat].items.push(opt);
+      });
+    });
+
+    Object.entries(cats).forEach(([cat, { el, items }]) => {
+      if (!el) return;
+      // Déduplique par id
+      const seen = new Set();
+      const unique = items.filter(i => { if(seen.has(i.id)) return false; seen.add(i.id); return true; });
+      if (unique.length === 0) { el.parentElement.style.display = 'none'; return; }
+      el.parentElement.style.display = 'block';
+      el.innerHTML = unique.map(opt => `
+        <div class="option-pill${opt.rainy ? ' rainy' : ''}" onclick="openModalFromOption('${opt.id}')">
+          ${opt.icon} ${opt.name}
+        </div>`).join('');
+    });
+  }
+
+  // Modal : activité ciblée, jour cible
+  let modalTarget = null; // { dayId, activityIndex }
+
+  function openActivityModal(dayId, actIndex, actName, actIcon) {
+    modalTarget = { dayId, actIndex };
+    const isRainy = currentRainDays[dayId];
+
+    document.getElementById('modal-current-text').innerHTML = `<strong>${actIcon} ${actName}</strong><br><small>${dayId.replace('d','') === dayId ? dayId : '📅 ' + dayId.replace('d','') + ' avril'}</small>`;
+
+    // Avertissement pluie
+    document.getElementById('modal-rain-warning').style.display = isRainy ? 'block' : 'none';
+    document.getElementById('modal-rain-section').style.display = isRainy ? 'block' : 'none';
+
+    const plannedIds = getPlannedIds();
+
+    // Alternatives pluie si jour pluvieux
+    const rainAltsEl = document.getElementById('modal-rain-alts');
+    if (isRainy) {
+      const rainOpts = ALL_OPTIONS.filter(o => o.rainy && !plannedIds.has(o.id));
+      rainAltsEl.innerHTML = rainOpts.map(opt => `
+        <div class="modal-alt rainy-alt" onclick="swapActivity('${dayId}', ${actIndex}, '${opt.id}')">
+          <span class="modal-alt-icon">${opt.icon}</span>
+          <div class="modal-alt-text">
+            <div class="modal-alt-name">${opt.name}</div>
+            <div class="modal-alt-desc">${opt.desc}</div>
+          </div>
+          <span class="modal-alt-tag" style="background:rgba(76,175,125,0.15);color:var(--green)">☔ Intérieur</span>
+        </div>`).join('') || '<div style="font-size:0.78rem;color:var(--muted);padding:8px">Toutes les options intérieures sont déjà planifiées</div>';
+    } else {
+      rainAltsEl.innerHTML = '';
+    }
+
+    // Toutes les alternatives
+    const allAltsEl = document.getElementById('modal-all-alts');
+    const allOpts = ALL_OPTIONS.filter(o => !plannedIds.has(o.id));
+    allAltsEl.innerHTML = allOpts.map(opt => `
+      <div class="modal-alt" onclick="swapActivity('${dayId}', ${actIndex}, '${opt.id}')">
+        <span class="modal-alt-icon">${opt.icon}</span>
+        <div class="modal-alt-text">
+          <div class="modal-alt-name">${opt.name}</div>
+          <div class="modal-alt-desc">${opt.desc}</div>
+        </div>
+        ${opt.rainy ? '<span class="modal-alt-tag" style="background:rgba(76,175,125,0.15);color:var(--green)">☔ OK pluie</span>' : ''}
+      </div>`).join('') || '<div style="font-size:0.78rem;color:var(--muted);padding:8px">Plus d\'options disponibles !</div>';
+
+    document.getElementById('activity-modal').classList.remove('hidden');
+  }
+
+  function openModalFromOption(optId) {
+    // Depuis le panneau latéral : choisir dans quel jour caser l'activité
+    const opt = ALL_OPTIONS.find(o => o.id === optId);
+    if (!opt) return;
+    document.getElementById('modal-current-text').innerHTML = `<strong>Ajouter : ${opt.icon} ${opt.name}</strong><br><small>Choisissez le jour et l'activité à remplacer</small>`;
+    document.getElementById('modal-rain-warning').style.display = 'none';
+    document.getElementById('modal-rain-section').style.display = 'none';
+    document.getElementById('modal-rain-alts').innerHTML = '';
+
+    const allAltsEl = document.getElementById('modal-all-alts');
+    // Lister les jours avec activités échangeables
+    const rows = [];
+    const days = ['d16','d17','d18','d19','d20','d21','d22','d23','d24','d25','d26'];
+    const dayLabels = { d16:'Jeu 16 avr', d17:'Ven 17 avr', d18:'Sam 18 avr', d19:'Dim 19 avr', d20:'Lun 20 avr', d21:'Mar 21 avr', d22:'Mer 22 avr', d23:'Jeu 23 avr', d24:'Ven 24 avr', d25:'Sam 25 avr', d26:'Dim 26 avr' };
+    days.forEach(dayId => {
+      const acts = planningState[dayId] || PLANNED_ACTIVITIES[dayId] || [];
+      acts.forEach((act, i) => {
+        rows.push(`<div class="modal-alt" onclick="swapActivity('${dayId}',${i},'${optId}')">
+          <span class="modal-alt-icon">${act.icon}</span>
+          <div class="modal-alt-text"><div class="modal-alt-name">Remplacer : ${act.name}</div><div class="modal-alt-desc">${dayLabels[dayId]}</div></div>
+        </div>`);
+      });
+    });
+    allAltsEl.innerHTML = rows.join('') || '<div style="font-size:0.78rem;color:var(--muted)">Aucune activité échangeable</div>';
+    document.getElementById('activity-modal').classList.remove('hidden');
+  }
+
+  function swapActivity(dayId, actIndex, newOptId) {
+    const newOpt = ALL_OPTIONS.find(o => o.id === newOptId);
+    if (!newOpt) return;
+
+    // Récupérer l'état actuel du jour
+    if (!planningState[dayId]) {
+      planningState[dayId] = JSON.parse(JSON.stringify(PLANNED_ACTIVITIES[dayId] || []));
+    }
+    // L'activité remplacée
+    const oldAct = planningState[dayId][actIndex];
+    // Remplacer
+    planningState[dayId][actIndex] = { id: newOpt.id, icon: newOpt.icon, name: newOpt.name };
+
+    // Sauvegarder
+    localStorage.setItem('mtl-planning', JSON.stringify(planningState));
+
+    // Fermer modal
+    closeModal();
+
+    // Re-rendre le jour dans le planning
+    renderDayActivities(dayId);
+
+    // Re-rendre panneau latéral
+    renderSidePanel();
+
+    // Feedback
+    showSaved();
+  }
+
+  function closeModal() {
+    document.getElementById('activity-modal').classList.add('hidden');
+    modalTarget = null;
+  }
+
+  // Ajouter les blocs d'activités interactifs dans les cartes de jour
+  function renderDayActivities(dayId) {
+    const container = document.getElementById('acts-' + dayId);
+    if (!container) return;
+    const acts = planningState[dayId] || PLANNED_ACTIVITIES[dayId] || [];
+    container.innerHTML = acts.map((act, i) => `
+      <div class="activity-item" draggable="true" data-day="${dayId}" data-index="${i}"
+           ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)">
+        <span class="activity-drag-handle">⠿</span>
+        <span class="activity-icon">${act.icon}</span>
+        <span class="activity-text">${act.name}</span>
+        <span class="activity-click" onclick="openActivityModal('${dayId}',${i},'${act.name}','${act.icon}')" title="Changer cette activité">✏️</span>
+      </div>`).join('');
+  }
+
+  // Injecter les conteneurs d'activités dans les day-cards existants
+  function injectActivityContainers() {
+    const daysToInject = ['d16','d17','d18','d19','d20','d21','d22','d23','d24','d25','d26'];
+    daysToInject.forEach(dayId => {
+      const body = document.getElementById('body-' + dayId);
+      if (!body) return;
+      if (document.getElementById('acts-' + dayId)) return;
+      const acts = planningState[dayId] || PLANNED_ACTIVITIES[dayId] || [];
+      if (!acts || acts.length === 0) return; // pas d'activités pour ce jour
+      const block = document.createElement('div');
+      block.className = 'block';
+      block.innerHTML = `<div class="block-title" style="color:var(--blue);border-left-color:var(--blue)">🎯 Activités — Glisse pour réordonner · ✏️ pour changer</div><div id="acts-${dayId}"></div>`;
+      body.insertBefore(block, body.children[1] || null);
+      renderDayActivities(dayId);
+    });
+  }
+
+  // DRAG & DROP
+  let dragSrc = null;
+  function dragStart(e) {
+    dragSrc = e.currentTarget;
+    dragSrc.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function dragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.activity-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+    e.currentTarget.classList.add('drag-over');
+  }
+  function dragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    document.querySelectorAll('.activity-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+  }
+  function dragDrop(e) {
+    e.preventDefault();
+    const target = e.currentTarget;
+    if (!dragSrc || dragSrc === target) return;
+    const dayId = dragSrc.dataset.day;
+    if (target.dataset.day !== dayId) return; // pas entre jours différents
+    const fromIdx = parseInt(dragSrc.dataset.index);
+    const toIdx = parseInt(target.dataset.index);
+    if (!planningState[dayId]) planningState[dayId] = JSON.parse(JSON.stringify(PLANNED_ACTIVITIES[dayId] || []));
+    const arr = planningState[dayId];
+    const [moved] = arr.splice(fromIdx, 1);
+    arr.splice(toIdx, 0, moved);
+    localStorage.setItem('mtl-planning', JSON.stringify(planningState));
+    renderDayActivities(dayId);
+    showSaved();
+  }
+
+  // Mettre à jour les jours pluvieux depuis la météo par jour
+  function updateRainDays(dayMap) {
+    Object.entries(dayMap).forEach(([dayId, w]) => {
+      if (w && w.rain > 50) currentRainDays[dayId] = true;
+    });
+  }
+
+  // Indicateur sauvegarde
+  function showSaved() {
+    const el = document.getElementById('save-indicator');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 1800);
+  }
+
+  // Fermer modal en cliquant dehors
+  document.getElementById('activity-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Init au chargement
+  injectActivityContainers();
+  renderSidePanel();
+</script>
+
+<!-- PAGE OUTILS -->
+<div class="page" id="page-tools">
+<div class="planning-header" style="background:linear-gradient(135deg,#0a0a1a 0%,#0f0f0f 60%);">
+  <h2 style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:2px;">OUTILS <span style="color:var(--blue);">VOYAGE</span> 🛠️</h2>
+  <div class="sub">Convertisseur · Pourboire · Budget · Urgences · Québécois</div>
+</div>
+<main style="padding:16px;max-width:600px;margin:0 auto;padding-bottom:60px;">
+
+  <!-- COUNTDOWN -->
+  <div style="background:linear-gradient(135deg,rgba(232,70,42,0.1),rgba(245,166,35,0.05));border:1px solid rgba(232,70,42,0.3);border-radius:12px;padding:16px;margin-bottom:12px;text-align:center;" id="countdown">
+    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;font-weight:600;">✈️ Départ dans...</div>
+    <div style="display:flex;justify-content:center;gap:12px;">
+      <div><div id="cd-j" style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--accent2);line-height:1;">0</div><div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase;">Jours</div></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--border);padding-top:4px;">:</div>
+      <div><div id="cd-h" style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--text);line-height:1;">00</div><div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase;">Heures</div></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--border);padding-top:4px;">:</div>
+      <div><div id="cd-m" style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--text);line-height:1;">00</div><div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase;">Min</div></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--border);padding-top:4px;">:</div>
+      <div><div id="cd-s" style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:var(--accent);line-height:1;">00</div><div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase;">Sec</div></div>
+    </div>
+  </div>
+
+  <!-- CONVERTISSEUR EUR/CAD -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1.5px;color:var(--accent2);margin-bottom:4px;">💱 Convertisseur EUR ↔ CAD</div>
+    <div id="rate-display" style="font-size:0.72rem;color:var(--green);margin-bottom:2px;">Chargement du taux...</div>
+    <div id="rate-date" style="font-size:0.68rem;color:var(--muted);margin-bottom:12px;"></div>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;">
+      <div>
+        <div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;">Euros €</div>
+        <input id="conv-eur" type="number" placeholder="0.00" oninput="convertCurrency()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:1rem;font-family:'DM Sans',sans-serif;outline:none;">
+      </div>
+      <div style="font-size:1.2rem;color:var(--muted);text-align:center;margin-top:18px;">⇄</div>
+      <div>
+        <div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;">CAD $</div>
+        <input id="conv-cad" type="number" placeholder="0.00" oninput="convertCurrency()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:1rem;font-family:'DM Sans',sans-serif;outline:none;">
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:0.75rem;color:var(--muted);">💡 Taux en temps réel via l'API Frankfurter</div>
+  </div>
+
+  <!-- CALCULATEUR POURBOIRE -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1.5px;color:var(--purple);margin-bottom:10px;">🍽️ Calculateur de pourboire</div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:10px;">Au Québec : 15% minimum, 18-20% recommandé !</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div>
+        <div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;">Montant (CAD)</div>
+        <input id="tip-bill" type="number" placeholder="0.00" oninput="calcTip()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:1rem;font-family:'DM Sans',sans-serif;outline:none;">
+      </div>
+      <div>
+        <div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;">Pourboire %</div>
+        <select id="tip-pct" onchange="calcTip()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:1rem;font-family:'DM Sans',sans-serif;outline:none;">
+          <option value="15">15% — Minimum</option>
+          <option value="18">18% — Bien</option>
+          <option value="20" selected>20% — Excellent</option>
+          <option value="25">25% — Généreux</option>
+        </select>
+      </div>
+    </div>
+    <div id="tip-result" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:0.88rem;color:var(--text);line-height:1.8;text-align:center;">Entrez un montant pour calculer</div>
+  </div>
+
+  <!-- TRACKER DÉPENSES -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1.5px;color:var(--green);margin-bottom:10px;">💰 Budget & Dépenses</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <div style="font-size:0.72rem;color:var(--muted);">Budget total :</div>
+      <input id="dep-budget" type="number" value="1500" style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--accent2);font-family:'Bebas Neue',sans-serif;font-size:1rem;outline:none;">
+      <span style="font-size:0.72rem;color:var(--muted);">CAD</span>
+      <button onclick="saveBudget()" style="background:var(--accent2);border:none;border-radius:6px;padding:4px 10px;color:#000;font-size:0.72rem;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:600;">OK</button>
+    </div>
+    <div style="background:var(--bg);border-radius:4px;height:6px;margin-bottom:6px;overflow:hidden;">
+      <div id="dep-bar" style="height:100%;width:0%;transition:width 0.4s;border-radius:4px;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:0.75rem;margin-bottom:12px;">
+      <span style="color:var(--muted);">Dépensé : <strong id="dep-total" style="color:var(--accent)">0.00 CAD</strong></span>
+      <span style="color:var(--muted);">Restant : <strong id="dep-restant" style="color:var(--green)">1500.00 CAD</strong></span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;margin-bottom:8px;">
+      <input id="dep-label" type="text" placeholder="Description (ex: Resto Elena)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:0.83rem;font-family:'DM Sans',sans-serif;outline:none;">
+      <input id="dep-montant" type="number" placeholder="CAD" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:0.83rem;font-family:'DM Sans',sans-serif;outline:none;">
+      <button onclick="ajouterDep()" style="background:var(--green);border:none;border-radius:8px;padding:8px 12px;color:#000;font-family:'Bebas Neue',sans-serif;font-size:0.9rem;cursor:pointer;letter-spacing:1px;">+ Ajouter</button>
+    </div>
+    <div id="dep-list" style="max-height:200px;overflow-y:auto;"></div>
+  </div>
+
+  <!-- NUMÉROS UTILES -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1.5px;color:var(--accent);margin-bottom:12px;">🆘 Numéros d'urgence & Contacts utiles</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <a href="tel:911" style="display:flex;align-items:center;gap:12px;background:rgba(232,70,42,0.08);border:1px solid rgba(232,70,42,0.25);border-radius:8px;padding:10px 12px;text-decoration:none;">
+        <span style="font-size:1.2rem;">🚨</span>
+        <div><div style="font-size:0.88rem;font-weight:600;color:var(--accent)">911</div><div style="font-size:0.72rem;color:var(--muted)">Urgences (Police · Pompiers · Ambulance)</div></div>
+      </a>
+      <a href="tel:+14388005143" style="display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-decoration:none;">
+        <span style="font-size:1.2rem;">🇫🇷</span>
+        <div><div style="font-size:0.88rem;font-weight:600;color:var(--text)">Consulat de France à Montréal</div><div style="font-size:0.72rem;color:var(--muted)">+1 (438) 800-5143</div></div>
+      </a>
+      <a href="tel:+14388005143" style="display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-decoration:none;">
+        <span style="font-size:1.2rem;">💳</span>
+        <div><div style="font-size:0.88rem;font-weight:600;color:var(--text)">Fortuneo — Perte/Vol carte</div><div style="font-size:0.72rem;color:var(--muted)">+33 (0)9 69 32 20 20 · 24h/24</div></div>
+      </a>
+      <a href="tel:+33177752626" style="display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-decoration:none;">
+        <span style="font-size:1.2rem;">🏥</span>
+        <div><div style="font-size:0.88rem;font-weight:600;color:var(--text)">Europ Assistance (Fortuneo Gold)</div><div style="font-size:0.72rem;color:var(--muted)">+33 (0)1 77 75 26 26 · Assistance voyage 24h/24</div></div>
+      </a>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+        <span style="font-size:1.2rem;">🏨</span>
+        <div><div style="font-size:0.88rem;font-weight:600;color:var(--text)">Holiday Inn Centre-Ville Ouest</div><div style="font-size:0.72rem;color:var(--muted)">22-24 avril · +1 (514) 938-9090</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+        <span style="font-size:1.2rem;">🏨</span>
+        <div><div style="font-size:0.88rem;font-weight:600;color:var(--text)">Hotel Monville Montréal</div><div style="font-size:0.72rem;color:var(--muted)">24-26 avril · +1 (514) 288-5656</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEXIQUE QUÉBÉCOIS -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1.5px;color:var(--accent2);margin-bottom:12px;">🍁 Lexique Québécois — Parle comme un local !</div>
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Char</span><span style="font-size:0.8rem;color:var(--muted);">Voiture — "T'as-tu un char ?"</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Dépanneur</span><span style="font-size:0.8rem;color:var(--muted);">Épicerie de quartier (ouvert tard)</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Tabarnac</span><span style="font-size:0.8rem;color:var(--muted);">Juron québécois (comme "putain")</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Ostie de bon</span><span style="font-size:0.8rem;color:var(--muted);">Vraiment délicieux</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">T'es-tu correct ?</span><span style="font-size:0.8rem;color:var(--muted);">Ça va ? Tu es ok ?</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Tantôt</span><span style="font-size:0.8rem;color:var(--muted);">Tout à l'heure / plus tard</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Magasiner</span><span style="font-size:0.8rem;color:var(--muted);">Faire du shopping</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Pogner</span><span style="font-size:0.8rem;color:var(--muted);">Attraper / comprendre</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Flusher</span><span style="font-size:0.8rem;color:var(--muted);">Jeter / annuler</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Boutte</span><span style="font-size:0.8rem;color:var(--muted);">Super / génial — "C'est le boutte !"</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Frette</span><span style="font-size:0.8rem;color:var(--muted);">Très froid — "Il fait frette dehors"</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Pantoute</span><span style="font-size:0.8rem;color:var(--muted);">Pas du tout — "J'suis pas fatigué pantoute"</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Chill / Correct</span><span style="font-size:0.8rem;color:var(--muted);">OK / bien / tranquille</span></div>
+      <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="font-weight:600;color:var(--accent2);min-width:110px;font-size:0.85rem;">Breuvage</span><span style="font-size:0.8rem;color:var(--muted);">Boisson — "Qu'est-ce tu veux comme breuvage ?"</span></div>
+    </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- PAGE CARTE -->
+<div class="page" id="page-map">
+<div class="map-header">
+  <h2>CARTE <span>MONTRÉAL</span> 🗺️</h2>
+  <div class="sub">Hôtels · Restos · Activités · Bars</div>
+</div>
+<div id="map-container"></div>
+<div class="map-legend">
+  <div class="map-legend-item"><div class="map-dot" style="background:#e8462a"></div>Hôtels</div>
+  <div class="map-legend-item"><div class="map-dot" style="background:#f5a623"></div>Restos</div>
+  <div class="map-legend-item"><div class="map-dot" style="background:#4a9eff"></div>Activités</div>
+  <div class="map-legend-item"><div class="map-dot" style="background:#a855f7"></div>Bars & Rooftops</div>
+  <div class="map-legend-item"><div class="map-dot" style="background:#4caf7d"></div>Marchés & Parcs</div>
+</div>
+</div>
+
+</body>
+</html>
