@@ -231,8 +231,32 @@
 
   @media(max-width:700px){
     .planning-layout{grid-template-columns:1fr;height:auto;}
-    .planning-right{display:none;}
+    .planning-right{
+      display:none;
+      position:fixed;bottom:0;left:0;right:0;
+      height:70vh;border-radius:16px 16px 0 0;
+      z-index:300;border-top:2px solid var(--blue);
+      box-shadow:0 -8px 32px rgba(0,0,0,0.6);
+    }
+    .planning-right.mobile-open{display:flex;}
+    .mobile-options-btn{
+      display:flex !important;
+    }
   }
+  .mobile-options-btn{
+    display:none;
+    position:fixed;bottom:20px;right:16px;
+    background:var(--blue);color:#000;
+    border:none;border-radius:50px;
+    padding:10px 18px;font-family:'Bebas Neue',sans-serif;
+    font-size:0.9rem;letter-spacing:1.5px;cursor:pointer;
+    box-shadow:0 4px 16px rgba(74,158,255,0.4);
+    z-index:299;align-items:center;gap:6px;
+  }
+  .mobile-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:299;
+  }
+  .mobile-overlay.show{display:block;}
 
   /* CARTE */
   .map-header{background:linear-gradient(135deg,#001510 0%,#0f0f0f 60%);border-bottom:1px solid var(--border);padding:20px 24px 16px;}
@@ -807,6 +831,12 @@
 </div>
 
 </div><!-- /planning-layout -->
+
+<!-- BOUTON MOBILE OPTIONS -->
+<button class="mobile-options-btn" id="mobile-opts-btn" onclick="toggleMobileOptions()">
+  🔵 Options
+</button>
+<div class="mobile-overlay" id="mobile-overlay" onclick="toggleMobileOptions()"></div>
 
 <!-- MODAL ÉCHANGE ACTIVITÉ -->
 <div class="modal-overlay hidden" id="activity-modal">
@@ -1490,17 +1520,31 @@
   // ===== CONVERTISSEUR EUR/CAD =====
   async function loadRate() {
     try {
-      const res = await fetch('https://api.frankfurter.app/latest?from=EUR&to=CAD');
+      // Try exchangerate-api (free, no key, CORS OK)
+      const res = await fetch('https://open.er-api.com/v6/latest/EUR');
       const d = await res.json();
       const rate = d.rates.CAD;
+      const dateStr = new Date(d.time_last_update_utc).toLocaleDateString('fr-FR');
       document.getElementById('rate-display').textContent = `1 € = ${rate.toFixed(4)} CAD`;
-      document.getElementById('rate-date').textContent = `Taux du ${d.date}`;
+      document.getElementById('rate-date').textContent = `Taux du ${dateStr}`;
       window._eurCadRate = rate;
       convertCurrency();
     } catch(e) {
-      window._eurCadRate = 1.48;
-      document.getElementById('rate-display').textContent = '1 € ≈ 1.48 CAD (estimé)';
-      convertCurrency();
+      try {
+        // Fallback: fixer.io free tier
+        const res2 = await fetch('https://api.fxratesapi.com/latest?base=EUR&currencies=CAD');
+        const d2 = await res2.json();
+        const rate2 = d2.rates.CAD;
+        document.getElementById('rate-display').textContent = `1 € = ${rate2.toFixed(4)} CAD`;
+        document.getElementById('rate-date').textContent = `Taux en direct`;
+        window._eurCadRate = rate2;
+        convertCurrency();
+      } catch(e2) {
+        window._eurCadRate = 1.48;
+        document.getElementById('rate-display').textContent = '1 € ≈ 1.48 CAD (taux indicatif)';
+        document.getElementById('rate-date').textContent = 'API indisponible — utilise Revolut pour le taux exact';
+        convertCurrency();
+      }
     }
   }
 
@@ -1842,7 +1886,27 @@
     setTimeout(() => el.classList.remove('show'), 1800);
   }
 
+  // Toggle panneau mobile
+  function toggleMobileOptions() {
+    const panel = document.getElementById('side-panel');
+    const overlay = document.getElementById('mobile-overlay');
+    if (!panel || !overlay) return;
+    const isOpen = panel.classList.contains('mobile-open');
+    panel.classList.toggle('mobile-open', !isOpen);
+    overlay.classList.toggle('show', !isOpen);
+  }
+
   // Fermer modal en cliquant dehors
+  // Toggle panneau mobile
+  function toggleMobileOptions() {
+    const panel = document.getElementById('side-panel');
+    const overlay = document.getElementById('mobile-overlay');
+    if (!panel || !overlay) return;
+    const isOpen = panel.classList.contains('mobile-open');
+    panel.classList.toggle('mobile-open', !isOpen);
+    overlay.classList.toggle('show', !isOpen);
+  }
+
   // Fermer modal en cliquant dehors
   const modalEl = document.getElementById('activity-modal');
   if (modalEl) modalEl.addEventListener('click', function(e) {
@@ -2004,11 +2068,21 @@
 </div>
 <div id="map-container"></div>
 <div class="map-legend">
-  <div class="map-legend-item"><div class="map-dot" style="background:#e8462a"></div>Hôtels</div>
-  <div class="map-legend-item"><div class="map-dot" style="background:#f5a623"></div>Restos</div>
-  <div class="map-legend-item"><div class="map-dot" style="background:#4a9eff"></div>Activités</div>
-  <div class="map-legend-item"><div class="map-dot" style="background:#a855f7"></div>Bars & Rooftops</div>
-  <div class="map-legend-item"><div class="map-dot" style="background:#4caf7d"></div>Marchés & Parcs</div>
+  <div class="map-legend-item"><div class="map-dot" style="background:#e8462a;box-shadow:0 0 6px #e8462a"></div><span style="color:#f0ece4">Hôtels & Airbnb</span></div>
+  <div class="map-legend-item"><div class="map-dot" style="background:#f5a623;box-shadow:0 0 6px #f5a623"></div><span style="color:#f0ece4">Restos</span></div>
+  <div class="map-legend-item"><div class="map-dot" style="background:#4a9eff;box-shadow:0 0 6px #4a9eff"></div><span style="color:#f0ece4">Activités</span></div>
+  <div class="map-legend-item"><div class="map-dot" style="background:#a855f7;box-shadow:0 0 6px #a855f7"></div><span style="color:#f0ece4">Bars & Rooftops</span></div>
+  <div class="map-legend-item"><div class="map-dot" style="background:#4caf7d;box-shadow:0 0 6px #4caf7d"></div><span style="color:#f0ece4">Marchés & Parcs</span></div>
+</div>
+<div style="background:var(--card);border-top:1px solid var(--border);padding:8px 16px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+  <span style="font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-right:4px;">Lieux :</span>
+  <span style="font-size:0.72rem;color:var(--muted)">🏠 Airbnb Plateau (16-22 avr)</span>
+  <span style="color:var(--border)">·</span>
+  <span style="font-size:0.72rem;color:var(--muted)">🏨 Holiday Inn (22-24 avr)</span>
+  <span style="color:var(--border)">·</span>
+  <span style="font-size:0.72rem;color:var(--muted)">🏨 Hotel Monville (24-26 avr)</span>
+  <span style="color:var(--border)">·</span>
+  <span style="font-size:0.72rem;color:var(--muted)">📍 Clique sur un marqueur pour les détails</span>
 </div>
 
 </body>
