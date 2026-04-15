@@ -1151,6 +1151,101 @@
 </div>
 
 <script>
+  // ===== DONNÉES ACTIVITÉS (déclarées en premier) =====
+  var planningState = JSON.parse(localStorage.getItem('mtl-planning') || '{}');
+  
+
+  var ALL_OPTIONS = [
+      // PLUIE (intérieur)
+      { id:'oasis',      icon:'🌀', name:'OASIS Immersion',         desc:'100% intérieur · Pass MTL 💗',           cats:['pluie','culture'],   rainy:true  },
+      { id:'sos',        icon:'🔦', name:'SOS Labyrinthe',          desc:'Vieux-Port · intérieur · Pass MTL 💙',   cats:['pluie','culture'],   rainy:true  },
+      { id:'basilique',  icon:'🏛️', name:'Basilique Notre-Dame',    desc:'Architecture + AURA le soir',            cats:['pluie','patrimoine'],rainy:true  },
+      { id:'biodome',    icon:'🌿', name:'Biodôme',                 desc:'5 écosystèmes · Pass MTL 💙',            cats:['pluie','nature'],    rainy:true  },
+      { id:'reso',       icon:'🚇', name:'RÉSO souterrain',         desc:'33km de tunnels + shopping',              cats:['pluie','shopping'],  rainy:true  },
+      { id:'tohu',       icon:'🎪', name:'Spectacle TOHU',          desc:'Acrobates · 23-26 avril · tohu.ca',      cats:['pluie','culture'],   rainy:true  },
+      { id:'hockey',     icon:'🏒', name:'Match Canadiens',         desc:'Centre Bell · fin de saison avril',       cats:['pluie','sport'],     rainy:true  },
+      // NATURE / PLEIN AIR
+      { id:'montroyal',  icon:'⛰️', name:'Mont-Royal sunset',       desc:'Vue imprenable · belvédère Kondiaronk',  cats:['nature'],            rainy:false },
+      { id:'lafontaine', icon:'🌲', name:'Parc La Fontaine',        desc:'Plateau · balade gratuite',               cats:['nature'],            rainy:false },
+      { id:'canal',      icon:'🌊', name:'Canal de Lachine',        desc:'Vélo ou balade bord de canal',            cats:['nature'],            rainy:false },
+      { id:'bota',       icon:'🧖', name:'Bota Bota Spa',           desc:'Bains nordiques · Vieux-Port',            cats:['nature','pluie'],    rainy:true  },
+      { id:'bungee',     icon:'🪂', name:'Bungee Montréal',         desc:'⚠️ Réserver · ouvre 18 avril',            cats:['nature','sport'],    rainy:false },
+      { id:'jardin',     icon:'🌸', name:'Jardin botanique',        desc:'Floraisons printemps · Pass MTL 💙',     cats:['nature','pluie'],    rainy:true  },
+      // CULTURE
+      { id:'granderoue', icon:'🎡', name:'Grande Roue',             desc:'60m · vue 360° · Pass MTL 💗',           cats:['culture'],           rainy:false },
+      { id:'oratoire',   icon:'⛪', name:'Oratoire Saint-Joseph',  desc:'Dôme 97m · gratuit extérieur',            cats:['culture','patrimoine'],rainy:false},
+      { id:'stade',      icon:'🏟️', name:'Stade olympique',        desc:'50e JO 2026 · activités spéciales',       cats:['culture','patrimoine'],rainy:true },
+      // SHOPPING / MARCHÉS
+      { id:'jt',         icon:'🛒', name:'Marché Jean-Talon',       desc:'Petite Italie · sirop d\'érable',         cats:['shopping'],          rainy:false },
+      { id:'atwater',    icon:'🛒', name:'Marché Atwater',          desc:'Canal Lachine · Art déco',                cats:['shopping'],          rainy:false },
+      { id:'locoshop',   icon:'🛍️', name:'Marché Locoshop Angus',  desc:'180 créateurs locaux · 25-26 avril',      cats:['shopping'],          rainy:false },
+      { id:'milend',     icon:'📍', name:'Mile End & Bagels',       desc:'St-Viateur · street art · brunch',        cats:['shopping','nature'],  rainy:false },
+      // SPORT / SPECTACLES
+      { id:'foot',       icon:'⚽', name:'Match CF Montréal',       desc:'Stade Saputo · MLS · cfmontreal.com',     cats:['sport'],             rainy:false },
+      { id:'hopoff',     icon:'🚌', name:'Bus Hop-on Hop-off',      desc:'Tour panoramique · parfait pluie',        cats:['sport','pluie'],     rainy:true  },
+      // PATRIMOINE
+      { id:'vieuxport',  icon:'🚶', name:'Vieux-Port + Rue St-Paul',desc:'Balade historique · photos',              cats:['patrimoine'],        rainy:false },
+      { id:'plateau',    icon:'🏠', name:'Plateau Mont-Royal',      desc:'Maisons colorées · escaliers torsadés',   cats:['patrimoine','nature'],rainy:false },
+      { id:'griffintown',icon:'🎨', name:'Griffintown',             desc:'Street art · quartier en essor',          cats:['patrimoine'],        rainy:false },
+    ];
+
+  var PLANNED_ACTIVITIES = {
+      d16: [
+        {id:'vieuxport',   icon:'🚶', name:'Vieux-Port + Rue Saint-Paul'},
+        {id:'montroyal',   icon:'🌄', name:'Mont-Royal au sunset'},
+        {id:'quartchin',   icon:'📍', name:'Quartier chinois'},
+      ],
+      d17: [
+        {id:'lacstsauv',   icon:'🌊', name:'Balade autour du lac — Saint-Sauveur'},
+        {id:'chill17',     icon:'😎', name:'Chill & détente'},
+        {id:'amis17',      icon:'🍻', name:'Soirée avec amis'},
+      ],
+      d18: [
+        {id:'omega',       icon:'🦌', name:'Safari Parc Oméga'},
+        {id:'montebello',  icon:'🏰', name:'Arrêt Montebello'},
+        {id:'rando18',     icon:'🌲', name:'Nature & randonnée'},
+      ],
+      d19: [
+        {id:'frontenac',   icon:'🏰', name:'Château Frontenac'},
+        {id:'dufferin',    icon:'🌉', name:'Terrasse Dufferin'},
+        {id:'champlain',   icon:'🛍️', name:'Quartier Petit Champlain'},
+      ],
+      d20: [
+        {id:'vincent',     icon:'🍽️', name:'Repas avec Vincent'},
+        {id:'routeqcsh',   icon:'🚗', name:'Route Québec → Sherbrooke'},
+        {id:'chill20',     icon:'😎', name:'Chill à l\'arrivée'},
+      ],
+      d21: [
+        {id:'lacnations',  icon:'🌊', name:'Lac des Nations — balade'},
+        {id:'spa21',       icon:'🧖', name:'Spa nordique'},
+        {id:'detente21',   icon:'😴', name:'Détente totale'},
+      ],
+      d22: [
+        {id:'vieuxport2',  icon:'🚶', name:'Vieux-Port + Rue Saint-Paul'},
+      ],
+      d23: [
+        {id:'milend',      icon:'📍', name:'Mile End + Bagels St-Viateur'},
+        {id:'oasis',       icon:'🌀', name:'OASIS Immersion'},
+        {id:'granderoue',  icon:'🎡', name:'Grande Roue de Montréal'},
+      ],
+      d24: [
+        {id:'atwater',     icon:'🛒', name:'Marché Atwater'},
+        {id:'canal',       icon:'🌊', name:'Canal de Lachine'},
+        {id:'griffintown', icon:'🎨', name:'Griffintown'},
+        {id:'reso',        icon:'🚇', name:'RÉSO souterrain + Shopping'},
+      ],
+      d25: [
+        {id:'bungee',      icon:'🪂', name:'Bungee Montréal'},
+        {id:'basilique',   icon:'🏛️', name:'Basilique Notre-Dame + AURA'},
+        {id:'sos',         icon:'🔦', name:'SOS Labyrinthe'},
+      ],
+      d26: [
+        {id:'bota',        icon:'🧖', name:'Bota Bota Spa-sur-l\'eau'},
+        {id:'stcath',      icon:'🛍️', name:'Rue Sainte-Catherine'},
+      ],
+    };
+
+
   const sections=['vestes','tshirts','hauts','pyjama','bas','maillots','sous','chaussures','accessoires','toilette','pharmacie','elec','cabine','docs','identite','todo','charge'];
   function toggleSection(id){const i=document.getElementById('items-'+id),c=document.getElementById('chev-'+id);i.classList.toggle('open');c.classList.toggle('open');}
   function toggle(el){el.classList.toggle('checked');updateAll();}
@@ -1481,11 +1576,14 @@
 
   // ===== COUNTDOWN =====
   function updateCountdown() {
+    const cdJ = document.getElementById('cd-j');
+    if (!cdJ) return;
     const depart = new Date('2026-04-16T07:00:00');
     const now = new Date();
     const diff = depart - now;
     if (diff <= 0) {
-      document.getElementById('countdown').innerHTML = '🛫 <strong style="color:var(--green)">C\'est parti pour Montréal !</strong>';
+      const cdEl = document.getElementById('countdown');
+      if(cdEl) cdEl.innerHTML = '\u{1F6EB} <strong style="color:var(--green)">C\'est parti pour Montréal !</strong>';
       return;
     }
     const j = Math.floor(diff / 86400000);
@@ -1503,100 +1601,11 @@
   // ===== SYSTÈME ACTIVITÉS INTERACTIVES =====
 
   // Base de données de toutes les activités options
-  const ALL_OPTIONS = [
-    // PLUIE (intérieur)
-    { id:'oasis',      icon:'🌀', name:'OASIS Immersion',         desc:'100% intérieur · Pass MTL 💗',           cats:['pluie','culture'],   rainy:true  },
-    { id:'sos',        icon:'🔦', name:'SOS Labyrinthe',          desc:'Vieux-Port · intérieur · Pass MTL 💙',   cats:['pluie','culture'],   rainy:true  },
-    { id:'basilique',  icon:'🏛️', name:'Basilique Notre-Dame',    desc:'Architecture + AURA le soir',            cats:['pluie','patrimoine'],rainy:true  },
-    { id:'biodome',    icon:'🌿', name:'Biodôme',                 desc:'5 écosystèmes · Pass MTL 💙',            cats:['pluie','nature'],    rainy:true  },
-    { id:'reso',       icon:'🚇', name:'RÉSO souterrain',         desc:'33km de tunnels + shopping',              cats:['pluie','shopping'],  rainy:true  },
-    { id:'tohu',       icon:'🎪', name:'Spectacle TOHU',          desc:'Acrobates · 23-26 avril · tohu.ca',      cats:['pluie','culture'],   rainy:true  },
-    { id:'hockey',     icon:'🏒', name:'Match Canadiens',         desc:'Centre Bell · fin de saison avril',       cats:['pluie','sport'],     rainy:true  },
-    // NATURE / PLEIN AIR
-    { id:'montroyal',  icon:'⛰️', name:'Mont-Royal sunset',       desc:'Vue imprenable · belvédère Kondiaronk',  cats:['nature'],            rainy:false },
-    { id:'lafontaine', icon:'🌲', name:'Parc La Fontaine',        desc:'Plateau · balade gratuite',               cats:['nature'],            rainy:false },
-    { id:'canal',      icon:'🌊', name:'Canal de Lachine',        desc:'Vélo ou balade bord de canal',            cats:['nature'],            rainy:false },
-    { id:'bota',       icon:'🧖', name:'Bota Bota Spa',           desc:'Bains nordiques · Vieux-Port',            cats:['nature','pluie'],    rainy:true  },
-    { id:'bungee',     icon:'🪂', name:'Bungee Montréal',         desc:'⚠️ Réserver · ouvre 18 avril',            cats:['nature','sport'],    rainy:false },
-    { id:'jardin',     icon:'🌸', name:'Jardin botanique',        desc:'Floraisons printemps · Pass MTL 💙',     cats:['nature','pluie'],    rainy:true  },
-    // CULTURE
-    { id:'granderoue', icon:'🎡', name:'Grande Roue',             desc:'60m · vue 360° · Pass MTL 💗',           cats:['culture'],           rainy:false },
-    { id:'oratoire',   icon:'⛪', name:'Oratoire Saint-Joseph',  desc:'Dôme 97m · gratuit extérieur',            cats:['culture','patrimoine'],rainy:false},
-    { id:'stade',      icon:'🏟️', name:'Stade olympique',        desc:'50e JO 2026 · activités spéciales',       cats:['culture','patrimoine'],rainy:true },
-    // SHOPPING / MARCHÉS
-    { id:'jt',         icon:'🛒', name:'Marché Jean-Talon',       desc:'Petite Italie · sirop d\'érable',         cats:['shopping'],          rainy:false },
-    { id:'atwater',    icon:'🛒', name:'Marché Atwater',          desc:'Canal Lachine · Art déco',                cats:['shopping'],          rainy:false },
-    { id:'locoshop',   icon:'🛍️', name:'Marché Locoshop Angus',  desc:'180 créateurs locaux · 25-26 avril',      cats:['shopping'],          rainy:false },
-    { id:'milend',     icon:'📍', name:'Mile End & Bagels',       desc:'St-Viateur · street art · brunch',        cats:['shopping','nature'],  rainy:false },
-    // SPORT / SPECTACLES
-    { id:'foot',       icon:'⚽', name:'Match CF Montréal',       desc:'Stade Saputo · MLS · cfmontreal.com',     cats:['sport'],             rainy:false },
-    { id:'hopoff',     icon:'🚌', name:'Bus Hop-on Hop-off',      desc:'Tour panoramique · parfait pluie',        cats:['sport','pluie'],     rainy:true  },
-    // PATRIMOINE
-    { id:'vieuxport',  icon:'🚶', name:'Vieux-Port + Rue St-Paul',desc:'Balade historique · photos',              cats:['patrimoine'],        rainy:false },
-    { id:'plateau',    icon:'🏠', name:'Plateau Mont-Royal',      desc:'Maisons colorées · escaliers torsadés',   cats:['patrimoine','nature'],rainy:false },
-    { id:'griffintown',icon:'🎨', name:'Griffintown',             desc:'Street art · quartier en essor',          cats:['patrimoine'],        rainy:false },
-  ];
-
+  
   // État des activités par jour (sauvegardé)
-  let planningState = JSON.parse(localStorage.getItem('mtl-planning') || '{}');
-  let currentRainDays = {}; // jours avec pluie détectée
+    var currentRainDays = {}; // jours avec pluie détectée
 
-  const PLANNED_ACTIVITIES = {
-    d16: [
-      {id:'vieuxport',   icon:'🚶', name:'Vieux-Port + Rue Saint-Paul'},
-      {id:'montroyal',   icon:'🌄', name:'Mont-Royal au sunset'},
-      {id:'quartchin',   icon:'📍', name:'Quartier chinois'},
-    ],
-    d17: [
-      {id:'lacstsauv',   icon:'🌊', name:'Balade autour du lac — Saint-Sauveur'},
-      {id:'chill17',     icon:'😎', name:'Chill & détente'},
-      {id:'amis17',      icon:'🍻', name:'Soirée avec amis'},
-    ],
-    d18: [
-      {id:'omega',       icon:'🦌', name:'Safari Parc Oméga'},
-      {id:'montebello',  icon:'🏰', name:'Arrêt Montebello'},
-      {id:'rando18',     icon:'🌲', name:'Nature & randonnée'},
-    ],
-    d19: [
-      {id:'frontenac',   icon:'🏰', name:'Château Frontenac'},
-      {id:'dufferin',    icon:'🌉', name:'Terrasse Dufferin'},
-      {id:'champlain',   icon:'🛍️', name:'Quartier Petit Champlain'},
-    ],
-    d20: [
-      {id:'vincent',     icon:'🍽️', name:'Repas avec Vincent'},
-      {id:'routeqcsh',   icon:'🚗', name:'Route Québec → Sherbrooke'},
-      {id:'chill20',     icon:'😎', name:'Chill à l\'arrivée'},
-    ],
-    d21: [
-      {id:'lacnations',  icon:'🌊', name:'Lac des Nations — balade'},
-      {id:'spa21',       icon:'🧖', name:'Spa nordique'},
-      {id:'detente21',   icon:'😴', name:'Détente totale'},
-    ],
-    d22: [
-      {id:'vieuxport2',  icon:'🚶', name:'Vieux-Port + Rue Saint-Paul'},
-    ],
-    d23: [
-      {id:'milend',      icon:'📍', name:'Mile End + Bagels St-Viateur'},
-      {id:'oasis',       icon:'🌀', name:'OASIS Immersion'},
-      {id:'granderoue',  icon:'🎡', name:'Grande Roue de Montréal'},
-    ],
-    d24: [
-      {id:'atwater',     icon:'🛒', name:'Marché Atwater'},
-      {id:'canal',       icon:'🌊', name:'Canal de Lachine'},
-      {id:'griffintown', icon:'🎨', name:'Griffintown'},
-      {id:'reso',        icon:'🚇', name:'RÉSO souterrain + Shopping'},
-    ],
-    d25: [
-      {id:'bungee',      icon:'🪂', name:'Bungee Montréal'},
-      {id:'basilique',   icon:'🏛️', name:'Basilique Notre-Dame + AURA'},
-      {id:'sos',         icon:'🔦', name:'SOS Labyrinthe'},
-    ],
-    d26: [
-      {id:'bota',        icon:'🧖', name:'Bota Bota Spa-sur-l\'eau'},
-      {id:'stcath',      icon:'🛍️', name:'Rue Sainte-Catherine'},
-    ],
-  };
-
+  
   // IDs des activités déjà planifiées (pour les exclure des options)
   function getPlannedIds() {
     const ids = new Set();
